@@ -1,0 +1,37 @@
+{
+  "name": "agentic-finance-graph",
+  "version": "0.1.0",
+  "description": "Agentic Finance Graph from the command line and as an MCP server: the independent ledger of money held and spent by AI agents on Base.",
+  "type": "module",
+  "bin": {
+    "afg": "bin/afg.mjs"
+  },
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "erc-8004",
+    "x402",
+    "base",
+    "usdc",
+    "agent-payments",
+    "cli"
+  ],
+  "homepage": "https://agenticfinancegraph.com",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AgenticFinanceGraph/agentic-finance-graph-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AgenticFinanceGraph/agentic-finance-graph-mcp/issues"
+  }
+}
