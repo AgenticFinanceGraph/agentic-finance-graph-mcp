@@ -51,11 +51,15 @@ Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-g
 
 ## How the numbers are counted
 
-Every figure carries its definition id and the time it was measured. Call `definition` before quoting one, or read them all at [agenticfinancegraph.com/def](https://agenticfinancegraph.com/def). A figure that turns out wrong is corrected publicly, with a date, in the [changelog](https://agenticfinancegraph.com/changelog).
+Every figure carries its definition id and the time it was measured. Call `definition` before quoting one, or read them all at [agenticfinancegraph.com/def](https://agenticfinancegraph.com/def). A figure that turns out wrong is corrected publicly, with a date, in the [changelog](https://agenticfinancegraph.com/changelog-september-2026-what-we-added-and-what-it-measures).
 
-## Help wanted
+## Work with us
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for what we would most like help with: more MCP clients tested, adapters for agent frameworks, a Python client, and figures you can reproduce differently.
+- **Builders:** see [where we need help](CONTRIBUTING.md) — MCP clients, framework adapters, a Python client, recipes. We are open to people who want to join the founding team.
+- **Platforms, institutions and investors:** [agenticfinancegraph.com/contact](https://agenticfinancegraph.com/contact)
+- **Agents:** `POST https://agenticfinancegraph.com/api/contact` with `{kind, message, reply_to}`.
+
+[X @AgenticGraph](https://x.com/AgenticGraph) · [Telegram](https://t.me/AgenticFinanceGraph) · [agenticfinancegraph@proton.me](mailto:agenticfinancegraph@proton.me) · ERC-8004 agent #95875 on Base
 
 ## Licence
 
