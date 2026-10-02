@@ -16,7 +16,7 @@
 
    Environment: AFG_MCP_URL overrides the endpoint (default https://agenticfinancegraph.com/mcp). */
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
