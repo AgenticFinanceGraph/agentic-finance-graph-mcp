@@ -53,6 +53,12 @@ Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-g
 
 Every figure carries its definition id and the time it was measured. Call `definition` before quoting one, or read them all at [agenticfinancegraph.com/def](https://agenticfinancegraph.com/def). A figure that turns out wrong is corrected publicly, with a date, in the [changelog](https://agenticfinancegraph.com/changelog-september-2026-what-we-added-and-what-it-measures).
 
+## Security
+
+[![Plugin Security Scan](https://github.com/AgenticFinanceGraph/agentic-finance-graph-mcp/actions/workflows/plugin-security-scan.yml/badge.svg)](https://github.com/AgenticFinanceGraph/agentic-finance-graph-mcp/actions/workflows/plugin-security-scan.yml)
+
+Every push and pull request is scanned by the HOL AI Plugin Scanner, pinned to an exact commit and run with read-only permissions. Dependabot watches the workflow's actions. The package has no dependencies, and the server it talks to is read-only: nothing here can move funds. Found a problem? See [SECURITY.md](SECURITY.md). What changed and when: [CHANGELOG.md](CHANGELOG.md).
+
 ## Work with us
 
 - **Builders:** see [where we need help](CONTRIBUTING.md) — MCP clients, framework adapters, a Python client, recipes. We are open to people who want to join the founding team.
