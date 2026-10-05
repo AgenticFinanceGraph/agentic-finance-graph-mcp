@@ -16,7 +16,7 @@
 
    Environment: AFG_MCP_URL overrides the endpoint (default https://agenticfinancegraph.com/mcp). */
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
-const VERSION = "0.1.1";
+const VERSION = "0.2.0";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -69,9 +69,12 @@ try {
     case "def": print(await tool("definition", { id: a1 || "" })); break;
     case "history": print(await tool("metric_history", { key: a1 || "", range: a2 || "30d" })); break;
     case "quote": print(await tool("evidence_pack_quote", { kind: a1 || "", id: a2 || "" })); break;
+    case "since": print(await tool("since_last", { metric_id: a1 || "", window: a2 || "sweep" })); break;
+    case "payers": print(await tool("counterparty_preview", a1 ? { address: a1 } : {})); break;
+    case "statement": print(await tool("agent_statement", { id: a1 || "" })); break;
     case "tools": { const j = await post({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }); print(j.result.tools.map((t) => t.name.padEnd(22) + t.title).join("\n")); break; }
     case "mcp": await bridge(); break;
     case "--version": case "-v": print(VERSION); break;
-    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | quote <kind> <id> | tools | mcp\n\nData: " + URL_);
+    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | quote <kind> <id> | tools | mcp\n\nData: " + URL_);
   }
 } catch (e) { process.stderr.write("afg: " + (e.message || e) + "\n"); process.exit(1); }
