@@ -36,6 +36,9 @@ The `mcp` command forwards each JSON-RPC message to the remote endpoint. It has 
 | `detections` | Newest detections, optionally for one agent |
 | `definition` | A frozen metric definition: method, exclusions, what it does not claim |
 | `metric_history` | One metric over 24h, 7d, 30d or 90d |
+| `since_last` | One figure beside the stored sample it moved from (previous sample, 24h, 7d or 30d); no prior sample is a gap, never a zero |
+| `counterparty_preview` | Who paid a receiving address: counted payments, distinct payers, distinct L7+ payers (counts only) |
+| `agent_statement` | An agent's latest 3-hour statement, hash-chained and provable against a signed Merkle root: check it before you pay |
 | `evidence_pack_quote` | Price and URL of a paid evidence pack (1 to 25 cents in USDC over x402); it does not pay |
 
 ## CLI
@@ -45,6 +48,9 @@ npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp state
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp find 57657
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp ranked 10 9
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp history actors_l7_plus 30d
+npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp since actors_l7_plus 24h
+npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp payers 0x4cd00e387622c35bddb9b4c962c136462338bc31
+npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp statement 53008
 ```
 
 Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-graph-mcp`, then run `afg state`.
