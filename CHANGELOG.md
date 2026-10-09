@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 — 9 October 2026
+
+- **A Dockerfile** for the stdio bridge, so directories that start servers from source (Glama) can introspect it: `docker run -i --rm afg-mcp` serves the same eleven read-only tools by forwarding to the remote endpoint.
+- **Where it is listed**, in the README: the official MCP Registry as `com.agenticfinancegraph/agentic-finance-graph` (publisher verified by domain), Smithery, Glama (health-checked), and the paid evidence packs in the Coinbase x402 Bazaar and on x402scan.
+
 ## 0.2.0 — 5 October 2026
 
 - **Three new tools on the server**, so nothing to install for MCP clients; this release adds them to the CLI:

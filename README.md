@@ -6,6 +6,8 @@ Read-only and free. Nothing here can move funds, and nothing here needs a key.
 
 **Website:** [agenticfinancegraph.com](https://agenticfinancegraph.com) · **Setup guide:** [MCP server, step by step](https://agenticfinancegraph.com/mcp-server-connect-your-ai-to-agent-money-data) · **Definitions:** [every figure, defined](https://agenticfinancegraph.com/def)
 
+**Listed in:** the [official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=com.agenticfinancegraph) as `com.agenticfinancegraph/agentic-finance-graph` (publisher verified by domain) · [Smithery](https://smithery.ai/search?q=agentic%20finance%20graph) · [Glama](https://glama.ai/mcp/connectors/com.agenticfinancegraph/agentic-finance-graph) (health-checked) · the paid evidence packs in the [Coinbase x402 Bazaar](https://docs.cdp.coinbase.com/x402/bazaar) and on [x402scan](https://www.x402scan.com)
+
 ## Connect as a remote MCP server (recommended)
 
 Endpoint: `https://agenticfinancegraph.com/mcp` (Streamable HTTP, stateless, no key).
@@ -24,6 +26,13 @@ Endpoint: `https://agenticfinancegraph.com/mcp` (Streamable HTTP, stateless, no 
 ```
 
 The `mcp` command forwards each JSON-RPC message to the remote endpoint. It has no dependencies; Node 18 or newer is enough.
+
+Or run the same bridge in a container (the image holds only the bridge; every answer still comes from the remote endpoint):
+
+```bash
+docker build -t afg-mcp https://github.com/AgenticFinanceGraph/agentic-finance-graph-mcp.git
+docker run -i --rm afg-mcp
+```
 
 ## Tools
 
