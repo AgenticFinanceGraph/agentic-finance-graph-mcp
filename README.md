@@ -8,6 +8,12 @@ Read-only and free. Nothing here can move funds, and nothing here needs a key.
 
 **Listed in:** the [official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=com.agenticfinancegraph) as `com.agenticfinancegraph/agentic-finance-graph` (publisher verified by domain) · [Smithery](https://smithery.ai/search?q=agentic%20finance%20graph) · [Glama](https://glama.ai/mcp/connectors/com.agenticfinancegraph/agentic-finance-graph) (health-checked) · the paid evidence packs in the [Coinbase x402 Bazaar](https://docs.cdp.coinbase.com/x402/bazaar) and on [x402scan](https://www.x402scan.com)
 
+## The same data on the website (30 seconds)
+
+https://github.com/user-attachments/assets/ee95c1e9-54c2-49fc-b756-5ab58203861d
+
+*The Desk at [agenticfinancegraph.com/desk](https://agenticfinancegraph.com/desk): connect a wallet, watch any agent, see its history, request the data for 1 cent. The MCP tools below read the same ledger.*
+
 ## Connect as a remote MCP server (recommended)
 
 Endpoint: `https://agenticfinancegraph.com/mcp` (Streamable HTTP, stateless, no key).
