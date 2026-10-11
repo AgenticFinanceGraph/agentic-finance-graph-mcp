@@ -88,6 +88,14 @@ Every push and pull request is scanned by the HOL AI Plugin Scanner, pinned to a
 
 [X @AgenticGraph](https://x.com/AgenticGraph) · [Telegram](https://t.me/AgenticFinanceGraph) · [agenticfinancegraph@proton.me](mailto:agenticfinancegraph@proton.me) · ERC-8004 agent #95875 on Base
 
+## Agent skill: check an agent before paying it
+
+A skill file for assistants and agent frameworks that already speak Agent Skills (Claude Code, Cursor, Codex, OpenClaw and the rest): [skills/afg-check-agent/SKILL.md](skills/afg-check-agent/SKILL.md). It tells the assistant how to use this MCP server before money moves: find the agent, read its record and its signed three-hour statement, read the detections on it and the counterparty it is about to pay, and report evidence with definitions and measurement times, never a verdict.
+
+```bash
+npx skills add AgenticFinanceGraph/agentic-finance-graph-mcp --skill afg-check-agent
+```
+
 ## Licence
 
 Apache-2.0 for the code in this repository. The data served by the endpoint is Agentic Finance Graph's; quote it with the definition id and the measurement time.
