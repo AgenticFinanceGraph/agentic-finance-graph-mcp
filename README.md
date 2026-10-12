@@ -6,7 +6,7 @@ Read-only and free. Nothing here can move funds, and nothing here needs a key.
 
 **Website:** [agenticfinancegraph.com](https://agenticfinancegraph.com) · **Setup guide:** [MCP server, step by step](https://agenticfinancegraph.com/mcp-server-connect-your-ai-to-agent-money-data) · **Definitions:** [every figure, defined](https://agenticfinancegraph.com/def)
 
-**Listed in:** the [official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=com.agenticfinancegraph) as `com.agenticfinancegraph/agentic-finance-graph` (publisher verified by domain) · [Smithery](https://smithery.ai/search?q=agentic%20finance%20graph) · [Glama](https://glama.ai/mcp/connectors/com.agenticfinancegraph/agentic-finance-graph) (health-checked) · the paid evidence packs in the [Coinbase x402 Bazaar](https://docs.cdp.coinbase.com/x402/bazaar) and on [x402scan](https://www.x402scan.com)
+**Listed in:** the [official MCP Registry](https://registry.modelcontextprotocol.io/?q=com.agenticfinancegraph) as `com.agenticfinancegraph/agentic-finance-graph` (publisher verified by domain) · [Smithery](https://smithery.ai/search?q=agentic%20finance%20graph) · [Glama](https://glama.ai/mcp/connectors/com.agenticfinancegraph/agentic-finance-graph) (health-checked) · the paid evidence packs in the [Coinbase x402 Bazaar](https://docs.cdp.coinbase.com/x402/bazaar) and on [x402scan](https://www.x402scan.com)
 
 ## The same data on the website (30 seconds)
 
@@ -45,18 +45,22 @@ docker run -i --rm afg-mcp
 | Tool | What it returns |
 |---|---|
 | `market_state` | Headline figures, each with value, unit, measurement time and definition id |
-| `find_agent` | One agent by token id, slug or wallet: rank, wallet, float, payment totals |
+| `find_agent` | An agent by token id, slug, wallet or declared name, or up to 25 ids at once: rank (and when it last changed), age, wallet, float, payment totals, open incidents |
 | `agent_record` | The free record of a ranked agent, with its 25 newest payments |
 | `ranked_agents` | Top ranked agents (L7+), optionally from a minimum level |
-| `detections` | Newest detections, optionally for one agent |
+| `detections` | Newest detections, filtered by agent, kind, severity, time or live incidents only |
 | `definition` | A frozen metric definition: method, exclusions, what it does not claim |
-| `metric_history` | One metric over 24h, 7d, 30d or 90d |
+| `metric_history` | One metric over 24h, 7d, 30d or 90d, with its own definition, our dated changes inside the range and the date from which it compares |
+| `list_metrics` | Every metric we measure: key, unit, definition id, first stored sample, `comparable_since` |
 | `since_last` | One figure beside the stored sample it moved from (previous sample, 24h, 7d or 30d); no prior sample is a gap, never a zero |
 | `counterparty_preview` | Who paid a receiving address: counted payments, distinct payers, distinct L7+ payers (counts only) |
 | `agent_statement` | An agent's latest 3-hour statement, hash-chained and provable against a signed Merkle root: check it before you pay |
+| `pay_check` | One free call before paying an agent: statement freshness and chain, live incidents, detections in the last 72 hours, last payment, payments since the statement, and which refuse conditions are met. Facts, never a verdict |
 | `evidence_pack_quote` | Price and URL of a paid evidence pack (1 to 25 cents in USDC over x402); it does not pay. `precheck` (5 cents) is the routine check before you pay or hire an agent, and takes `payto`, the address you were given; `venue` (3 cents) says what one address is; `builders` (1 cent) lists the ERC-8021 Builder Codes on an agent's payments |
 
-`market_state`, `ranked_agents` and `agent_record` also return typed results (`structuredContent`, described by an `outputSchema`). The server speaks MCP 2025-11-25 and the earlier versions.
+`market_state`, `ranked_agents` and `agent_record` also return typed results (`structuredContent`, described by an `outputSchema`). `market_state` carries a `composition` block (what counted spending consists of, ten parts that add up to the cent) and our data-quality checks; every figure that our own coverage changes touched carries `comparable_since`, and the dated register of those changes is at [/api/changepoints](https://agenticfinancegraph.com/api/changepoints). The server speaks MCP 2025-11-25 and the earlier versions.
+
+**Just connected?** Tell your AI, in your own words: *"I connected Agentic Finance Graph. Look through what it offers and show me what we can do with it."* The server's instructions tell it how to give the tour with today's figures. Three resources are also served: `afg://guide`, `afg://changepoints`, `afg://definitions`.
 
 ## Prompts
 
@@ -64,6 +68,7 @@ Ready-made workflows. Clients such as Claude show them in the prompt menu once t
 
 | Prompt | What it does |
 |---|---|
+| `start_here` | A guided tour with today's real figures: what the ledger measures and the questions worth asking it |
 | `daily_brief` | What moved in the last 24 hours: rank, spending and new detections, each figure with its time and definition id |
 | `check_before_paying` (`agent`, optional `payto`) | The routine check before your agent pays or hires another: its statement, level and flags, and who has paid the address you were given. It refuses on a stale statement, a broken chain or open flags, and never pays without your approval |
 | `explain_agent` (`agent`) | One agent in plain words: its level and why, what it paid and to whom, its flags, and what the data cannot show |

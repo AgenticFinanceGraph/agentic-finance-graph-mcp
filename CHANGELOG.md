@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.4 — 12 October 2026, evening (server 1.4.0)
+
+After a second outside review worked through every tool. Nothing to install for MCP clients; the CLI is unchanged.
+
+- **Two new tools.** `pay_check`: one free call before paying an agent (statement freshness and chain, live incidents, detections in the last 72 hours, last payment, payments since the statement, which documented refuse conditions are met). `list_metrics`: every metric with key, unit, definition id, first stored sample and `comparable_since`.
+- **Our own changes, dated.** A register of coverage, method, label and detector-rule changes at `/api/changepoints`; `metric_history` returns the ones inside the range and `comparable_since`; `since_last` flags `changepoint_in_window`; `market_state` figures carry `comparable_since`. The 27 September sweep (four stablecoins, every bound wallet) is the big one: agent counts compare from 3 October.
+- **What counted spending consists of.** `market_state.composition`: ten parts from one pass that add up to the counted total (own positions 52%, bridges 17.5%, work escrow 16.8%, swaps 3.3%, other agents 0.4%, x402 sellers 0.01%, unnamed 9.9% on 12 October), plus `pay_usd_left_control_net_self_bridge` and the labelled share by value; a `data_quality` block; `pay_usd_last_day` names its day and provisional days are listed apart.
+- **Definitions.** `rank.l8plus.v2` and `rank.l9.v2` state the four-stablecoin rule the counts have followed since 27 September (v1 said USDC; superseded, still served). Every definition returns dated `revisions` and `body_sha256`; an unknown id returns the nearest ids.
+- **Smaller.** `metric_history` links each metric's own definition (it pointed at `/api/state`); `since_last` answers `material` for every metric (`threshold_source` says published or default); `ranked_agents` states its order and takes `sort_by`; `detections` filters by kind, severity, time and live incidents, with `compact`; `find_agent` matches declared names and takes up to 25 ids; `agent_statement` and the statement pack show amounts in dollars beside the signed base units; `x402_seller` is `false` when checked and not a seller, `null` only when not checked; the check before paying also stops on a live incident.
+- **For a new user.** A `start_here` prompt, server instructions that tell the client how to give the tour, and three resources (`afg://guide`, `afg://changepoints`, `afg://definitions`).
+
 ## 0.2.3 — 12 October 2026, later
 
 - **Prompts on the server** (MCP server 1.3.0): `daily_brief`, `check_before_paying`, `explain_agent` and `where_agents_pay`. Clients such as Claude list them in the prompt menu; nothing to install.
