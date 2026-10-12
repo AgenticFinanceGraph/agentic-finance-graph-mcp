@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.5 — 12 October 2026, night (server 1.5.0)
+
+Nothing to install for MCP clients; the CLI is unchanged.
+
+- **A new tool, `payer_set`.** It returns the wallets observed paying one agent (income into its bound wallets, plus counted payments from other registered agents), up to 250, with payments, USD and first and last paid. It also says how much of the agent's ERC-8004 feedback is payment-grounded, meaning the reviewer paid before rating. `get_summary_input` is ready for the Reputation Registry's `getSummary(agentId, clientAddresses)`, the reviewer filter the standard asks for. It is also served at `/api/payers?agent=`. Paying first does not make a reviewer independent: one agent's 85 reviews all came from one wallet that pays it.
+- **Address-poisoning rule v2.** The watch now also counts a look-alike that matches a payee on the first 3 and last 4 hex characters, the threshold of Tsuchiya, Dong, Soska and Christin (USENIX Security 2025), and still counts fake-token plants that match only the last 4. Measured before the change:
+  - of 82,132 plants either rule counts, the old rule found 80,509 and the paper's 80,880;
+  - a second read from the chain found every one of 300 sampled plants sent by somebody other than the wallet.
+  
+  `poison.*.v2` definitions; v1 is kept and marked superseded.
+- **A statement log that cannot be quietly rewritten.** Every signed statement-window root is a leaf of an append-only log in the shape of Certificate Transparency (RFC 6962), with a signed tree head and consistency and inclusion proofs at `/api/statements/log`.
+- **Endpoint-domain verification** in the liveness sweep (ERC-8004's `/.well-known/agent-registration.json`), and a data check for unexplained steps in our own series, with the list at `/api/steps`. Both are listed by `list_metrics` and dated in `/api/changepoints`.
+
 ## 0.2.4 — 12 October 2026, evening (server 1.4.0)
 
 After a second outside review worked through every tool. Nothing to install for MCP clients; the CLI is unchanged.
