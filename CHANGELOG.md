@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3 — 12 October 2026, later
+
+- **Prompts on the server** (MCP server 1.3.0): `daily_brief`, `check_before_paying`, `explain_agent` and `where_agents_pay`. Clients such as Claude list them in the prompt menu; nothing to install.
+- **Typed results:** `market_state`, `ranked_agents` and `agent_record` return `structuredContent` with an `outputSchema`, so a client can read the fields without parsing text.
+- **Protocol:** the server negotiates MCP 2025-11-25 as well as 2025-06-18, 2025-03-26 and 2024-11-05, and declares its prompts and resources.
+- `market_state` notes that `actors_l8_plus` moves in steps when an operator funds a fleet of its own registrations, and that `actors_l9` is the steadier measure.
+- The bridge and the CLI are unchanged.
+
 ## 0.2.2 — 12 October 2026
 
 - **Three new paid packs on the server** (MCP server 1.2.0), quoted by `evidence_pack_quote`:

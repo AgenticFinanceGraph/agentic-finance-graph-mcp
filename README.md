@@ -56,6 +56,19 @@ docker run -i --rm afg-mcp
 | `agent_statement` | An agent's latest 3-hour statement, hash-chained and provable against a signed Merkle root: check it before you pay |
 | `evidence_pack_quote` | Price and URL of a paid evidence pack (1 to 25 cents in USDC over x402); it does not pay. `precheck` (5 cents) is the routine check before you pay or hire an agent, and takes `payto`, the address you were given; `venue` (3 cents) says what one address is; `builders` (1 cent) lists the ERC-8021 Builder Codes on an agent's payments |
 
+`market_state`, `ranked_agents` and `agent_record` also return typed results (`structuredContent`, described by an `outputSchema`). The server speaks MCP 2025-11-25 and the earlier versions.
+
+## Prompts
+
+Ready-made workflows. Clients such as Claude show them in the prompt menu once the server is connected.
+
+| Prompt | What it does |
+|---|---|
+| `daily_brief` | What moved in the last 24 hours: rank, spending and new detections, each figure with its time and definition id |
+| `check_before_paying` (`agent`, optional `payto`) | The routine check before your agent pays or hires another: its statement, level and flags, and who has paid the address you were given. It refuses on a stale statement, a broken chain or open flags, and never pays without your approval |
+| `explain_agent` (`agent`) | One agent in plain words: its level and why, what it paid and to whom, its flags, and what the data cannot show |
+| `where_agents_pay` | The endpoints the most ranked agents pay, with counts |
+
 ## CLI
 
 ```
