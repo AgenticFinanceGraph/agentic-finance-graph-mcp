@@ -10,13 +10,13 @@
    afg detections [agent] [n]     newest detections
    afg def <definition-id>        a frozen metric definition
    afg history <metric> [range]   a metric's history (24h, 7d, 30d, 90d)
-   afg quote <kind> <id>          price and URL of an evidence pack (does not pay)
+   afg quote <kind> <id> [payto]  price and URL of an evidence pack (does not pay); precheck takes the address you are about to pay
    afg mcp                        run as a stdio MCP server (for clients without remote MCP)
    afg tools                      list the tools
 
    Environment: AFG_MCP_URL overrides the endpoint (default https://agenticfinancegraph.com/mcp). */
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
-const VERSION = "0.2.1";
+const VERSION = "0.2.2";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -58,7 +58,7 @@ async function bridge() {
   process.stdin.on("end", () => { const line = buf.trim(); if (line) queue.push(line); pump(); });
 }
 
-const [cmd, a1, a2] = process.argv.slice(2);
+const [cmd, a1, a2, a3] = process.argv.slice(2);
 try {
   switch (cmd) {
     case "state": { const s = await tool("market_state", {}); const rows = Object.entries(s.figures).map(([k, v]) => k.padEnd(36) + String(v.value).padStart(16) + "  " + (v.unit || "") + "  " + (v.as_of || "")); print("as of " + s.as_of + "\n" + rows.join("\n")); break; }
@@ -68,7 +68,7 @@ try {
     case "detections": print(await tool("detections", Object.assign({ limit: Number(a2) || 10 }, a1 ? { agent: a1 } : {}))); break;
     case "def": print(await tool("definition", { id: a1 || "" })); break;
     case "history": print(await tool("metric_history", { key: a1 || "", range: a2 || "30d" })); break;
-    case "quote": print(await tool("evidence_pack_quote", { kind: a1 || "", id: a2 || "" })); break;
+    case "quote": print(await tool("evidence_pack_quote", Object.assign({ kind: a1 || "", id: a2 || "" }, a3 ? { payto: a3 } : {}))); break;
     case "since": print(await tool("since_last", { metric_id: a1 || "", window: a2 || "sweep" })); break;
     case "payers": print(await tool("counterparty_preview", a1 ? { address: a1 } : {})); break;
     case "statement": print(await tool("agent_statement", { id: a1 || "" })); break;
