@@ -2,7 +2,7 @@
 name: afg-check-agent
 title: "Check an AI agent before paying it (Agentic Finance Graph)"
 description: "Before an agent pays another agent, service or wallet on Base, read its record from Agentic Finance Graph: liveness level, counted spending, counterparties, open detections and the signed three-hour statement. Evidence with definitions and measurement times, never a verdict. Free MCP server, no key."
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Check an agent before paying it
@@ -27,6 +27,8 @@ Connect the MCP server at `https://agenticfinancegraph.com/mcp` (stateless, read
 3. **Read the statement.** `agent_statement` gives the latest three-hour statement with a Merkle proof against an Ed25519-signed root. Refuse-to-pay signals: `stale` true, `chain_ok` false, or `flags` not empty. Say which one.
 4. **Read the detections.** `detections` with the agent id: drain-shaped payments (with the share of the wallet they took), retry storms, mint bursts, owner changes under a binding, delegation to unknown code. A detection is a shape with evidence.
 5. **Check the payee itself.** `counterparty_preview` with the address you are about to pay: how many registered agents paid it, how many at L7 or above, first and last seen. An address no ranked agent has paid is "new to the ledger", which is worth saying before a large payment.
+
+   **One call instead of steps 2 to 5:** the `precheck` pack (5 cents over x402, quoted by `evidence_pack_quote` with `kind: precheck`, the agent's id and `payto`) returns the level and last payment, live incidents, the statement's age, chain and flags, and what the payTo address is, including whether our poisoning watch saw it planted as a look-alike, in one dated file. It lists facts and the published rules beside them; the decision stays with the paying agent's policy.
 6. **Report in this order**: what was measured, when, by which definition; then what it does and does not show. Offer the agent's page (`https://agenticfinancegraph.com/agent/8004-base-<token>`) for the human.
 
 ## What this skill does not do
@@ -35,4 +37,4 @@ It does not score reputation, does not read ERC-8004 feedback as truth (on Base 
 
 ## Paid evidence (optional)
 
-Deeper packs (liveness card, where it pays, drain shape, incident pack, peer slice, statement history, who paid its main payee, revaluation) are sold over x402 for one to twenty-five cents in USDC on Base, `GET https://agenticfinancegraph.com/check/<kind>?id=<token>`; `evidence_pack_quote` returns the price before anything is paid. The free tools above are enough for a first check.
+Deeper packs (check before you pay, what an address is, which apps move its money, liveness card, where it pays, drain shape, incident pack, peer slice, statement history, who paid its main payee, revaluation) are sold over x402 for one to twenty-five cents in USDC on Base, `GET https://agenticfinancegraph.com/check/<kind>?id=<token>`; `evidence_pack_quote` returns the price before anything is paid. The free tools above are enough for a first check.
