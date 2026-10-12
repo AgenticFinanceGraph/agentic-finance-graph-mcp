@@ -54,7 +54,7 @@ docker run -i --rm afg-mcp
 | `since_last` | One figure beside the stored sample it moved from (previous sample, 24h, 7d or 30d); no prior sample is a gap, never a zero |
 | `counterparty_preview` | Who paid a receiving address: counted payments, distinct payers, distinct L7+ payers (counts only) |
 | `agent_statement` | An agent's latest 3-hour statement, hash-chained and provable against a signed Merkle root: check it before you pay |
-| `evidence_pack_quote` | Price and URL of a paid evidence pack (1 to 25 cents in USDC over x402); it does not pay |
+| `evidence_pack_quote` | Price and URL of a paid evidence pack (1 to 25 cents in USDC over x402); it does not pay. `precheck` (5 cents) is the routine check before you pay or hire an agent, and takes `payto`, the address you were given; `venue` (3 cents) says what one address is; `builders` (1 cent) lists the ERC-8021 Builder Codes on an agent's payments |
 
 ## CLI
 
@@ -66,6 +66,7 @@ npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp history actors_l7_pl
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp since actors_l7_plus 24h
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp payers 0x4cd00e387622c35bddb9b4c962c136462338bc31
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp statement 53008
+npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp quote precheck 53008 0x0e84ddedaae6a779c462c22a59f301ec31b6b808
 ```
 
 Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-graph-mcp`, then run `afg state`.

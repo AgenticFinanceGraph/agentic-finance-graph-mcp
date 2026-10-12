@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2 — 12 October 2026
+
+- **Three new paid packs on the server** (MCP server 1.2.0), quoted by `evidence_pack_quote`:
+  - `precheck` (5 cents): the routine check before an agent pays or hires another. Its level and last observed payment, live incidents, how old its latest statement is and whether the chain is intact, and, with `payto`, what the address it gave you is: label and basis, contract or plain key, how many registered agents paid it, whether this agent paid it before, and whether our poisoning watch saw it planted as a look-alike. Facts only, never a verdict.
+  - `venue` (3 cents): what one address on Base is, who pays it, and its stablecoin flow over the last 48 hours, read live.
+  - `builders` (1 cent): the ERC-8021 Builder Codes on one agent's counted payments.
+- `evidence_pack_quote` takes an optional `payto`; the CLI passes it as a third argument: `afg quote precheck 53008 0x…`.
+- The skill `afg-check-agent` (0.2.0) names the precheck as the one-call version of its workflow.
+
 ## 0.2.1 — 9 October 2026
 
 - **A Dockerfile** for the stdio bridge, so directories that start servers from source (Glama) can introspect it: `docker run -i --rm afg-mcp` serves the same eleven read-only tools by forwarding to the remote endpoint.
