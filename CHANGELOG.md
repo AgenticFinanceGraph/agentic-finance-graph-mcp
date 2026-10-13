@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.7 — 13 October 2026, 21:00 UTC (server 1.7.0)
+
+Nothing to install for MCP clients; the CLI is unchanged.
+
+- **Four new tools.** `agent_stability` (stable for N days: the run length since the last break in an agent's own payment behaviour and its heartbeat class; `stability.run_length.v1`, `stability.heartbeat.v1`), `agent_independence` (the seed-based independence score, the operator-set-aware L9 count and the inflation ratio; `rank.independence.v1`, `rank.inflation.v1`, `cluster.ratio.v1`), `ladder_dynamics` (how ranked agents end, the drain ratio per launch platform, the transition matrix, the landmark re-check; `ladder.exit_incidence.v1`, `platform.sdr.v1`, `ladder.transition.v1`, `survival.landmark.v1`) and `verify_sum_log` (the skeptical client over the Merkle-sum log of every counted payment and the statement log; `sumlog.v1`).
+- **`pay_check`** now carries the behaviour clock, the independence score and whether the issuer froze the agent's wallet (`issuer.freeze.v1`; a frozen wallet is a refuse condition).
+- **A new pack, `trace`** (5 cents), quoted by `evidence_pack_quote`: an agent's exits followed live up to three hops, with each hop's label, kind, issuer freeze, swap out of a freezable token and Tron activity (`check.trace.v1`).
+- **Two new detection kinds** in `detections`: `test_then_drain` (a probe payment, then the drain to the same address; `detector.test_then_drain.v1`) and `fleet_sibling_exposure` (a notice to every registration in a drained agent's operator set; `fleet.sibling.v1`).
+- **L9 is operator-set aware** from 13 October, 21:22 UTC (`rank.l9.v4`): a shared address counts as independent only when an agent outside the payer's operator set also pays it; measured before the switch, 71 of 72 L9 agents kept the level.
+- Free API views behind the tools: `/api/stability`, `/api/independence`, `/api/ladder-dynamics`, `/api/sum-log`, `/api/freezes`, `/api/x402-submitters`.
+
 ## 0.2.6 — 13 October 2026 (server 1.6.0)
 
 Nothing to install for MCP clients; the CLI is unchanged.
