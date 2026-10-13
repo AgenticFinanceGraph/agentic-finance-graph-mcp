@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.6 — 13 October 2026 (server 1.6.0)
+
+Nothing to install for MCP clients; the CLI is unchanged.
+
+- **The liveness ladder as the code runs it.** Ranks now follow `rank.l7plus.v2` (money left the agent's control: not into its own lending or vault position, not to its own addresses, not a bridge leg that came back), `rank.l8plus.v3` and `rank.l9.v3` (three independent counterparties: contract code, or paid by two or more agents). L6 is measured (`probe.l6.protocol.v1`: an MCP, A2A or x402 handshake) and L5 reads up to 8 endpoints in any order (`probe.l5.endpoint_live.v2`). `definition` resolves a superseded id to its successor; the dated changes are in `/api/changepoints`.
+- **A new pack, `exit`** (3 cents), quoted by `evidence_pack_quote`: every window in which a new payee took most of an agent's outflow within 72 hours, its status under `drain.abandoned.v1` (candidate, pending, resumed, service) and the second hop read live. Candidates, never verdicts.
+- **A2A.** The same read-only checks answer at `/api/a2a` (JSON-RPC 0.3 `message/send`); the agent card points there.
+- **Builder Codes** are now read inside smart-wallet UserOperations as well (`pay.builder.attribution.v2`).
+- The skill `afg-check-agent` (0.3.1) states the rungs as above.
+
 ## 0.2.5 — 12 October 2026, night (server 1.5.0)
 
 Nothing to install for MCP clients; the CLI is unchanged.

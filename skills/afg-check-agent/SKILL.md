@@ -2,7 +2,7 @@
 name: afg-check-agent
 title: "Check an AI agent before paying it (Agentic Finance Graph)"
 description: "Before an agent pays another agent, service or wallet on Base, read its record from Agentic Finance Graph: liveness level, counted spending, counterparties, open detections and the signed three-hour statement. Evidence with definitions and measurement times, never a verdict. Free MCP server, no key."
-version: 0.3.0
+version: 0.3.1
 ---
 
 # Check an agent before paying it
@@ -24,7 +24,7 @@ Connect the MCP server at `https://agenticfinancegraph.com/mcp` (stateless, read
 
 0. **Start with `pay_check`** (free, one call). It returns the statement's freshness, chain and flags, live incidents, the agent's detections in the last 72 hours, its last payment, the payments it made after its latest statement (the hours a statement cannot show yet), and `refuse_conditions_met`. If that list is not empty, stop and say why. Otherwise the steps below give the detail.
 1. **Find it.** `find_agent` with a token id, slug, name or wallet address. If it is not ranked, say so: an agent never seen paying anyone has no record to check, and that is itself the finding.
-2. **Read the record.** `agent_record` gives the liveness level (L0 registered … L7 paid … L8 paid and still holding $10 in stablecoins … L9 three counterparties in 30 days), counted spending, counterparties, bindings and the 25 newest payments. A high level is cheap to reach (`rank.costtofake.v1`); it says the agent pays, not that it is any good.
+2. **Read the record.** `agent_record` gives the liveness level (L0 registered … L6 an endpoint that speaks MCP, A2A or x402 … L7 money left its control: a payment that is not into its own position, to its own addresses or a bridge leg back … L8 that, and still holding $10 in stablecoins … L9 that, and three independent counterparties in 30 days), counted spending, counterparties, bindings and the 25 newest payments. A high level is cheap to reach (`rank.costtofake.v1`); it says the agent pays, not that it is any good.
 3. **Read the statement.** `agent_statement` gives the latest three-hour statement with a Merkle proof against an Ed25519-signed root, and its amounts in dollars under `display`. Refuse-to-pay signals: `stale` true, `chain_ok` false, `flags` not empty, or a live incident (`open_incidents` above zero in `find_agent`). Say which one.
 4. **Read the detections.** `detections` with the agent id: drain-shaped payments (with the share of the wallet they took), retry storms, mint bursts, owner changes under a binding, delegation to unknown code. A detection is a shape with evidence.
 5. **Check the payee itself.** `counterparty_preview` with the address you are about to pay: how many registered agents paid it, how many at L7 or above, first and last seen. An address no ranked agent has paid is "new to the ledger", which is worth saying before a large payment.
@@ -38,4 +38,4 @@ It does not score reputation, does not read ERC-8004 feedback as truth (on Base 
 
 ## Paid evidence (optional)
 
-Deeper packs (check before you pay, what an address is, which apps move its money, liveness card, where it pays, drain shape, incident pack, peer slice, statement history, who paid its main payee, revaluation) are sold over x402 for one to twenty-five cents in USDC on Base, `GET https://agenticfinancegraph.com/check/<kind>?id=<token>`; `evidence_pack_quote` returns the price before anything is paid. The free tools above are enough for a first check.
+Deeper packs (check before you pay, what an address is, which apps move its money, liveness card, where it pays, drain shape, incident pack, peer slice, statement history, did its wallet empty out, who paid its main payee, revaluation) are sold over x402 for one to twenty-five cents in USDC on Base, `GET https://agenticfinancegraph.com/check/<kind>?id=<token>`; `evidence_pack_quote` returns the price before anything is paid. The free tools above are enough for a first check.
