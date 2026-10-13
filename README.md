@@ -55,7 +55,7 @@ docker run -i --rm afg-mcp
 | `since_last` | One figure beside the stored sample it moved from (previous sample, 24h, 7d or 30d); no prior sample is a gap, never a zero |
 | `counterparty_preview` | Who paid a receiving address: counted payments, distinct payers, distinct L7+ payers (counts only) |
 | `agent_statement` | An agent's latest 3-hour statement, hash-chained and provable against a signed Merkle root: check it before you pay |
-| `pay_check` | One free call before paying an agent: statement freshness and chain, live incidents, detections in the last 72 hours, last payment, payments since the statement, and which refuse conditions are met. Facts, never a verdict |
+| `pay_check` | One free call before paying an agent: statement freshness and chain, live incidents, detections in the last 72 hours, the token approvals its wallet has given (unlimited ones, and any to a plain account), last payment, payments since the statement, and which refuse conditions are met. Facts, never a verdict |
 | `payer_set` | The wallets observed paying one agent (up to 250), and how much of its ERC-8004 feedback came from wallets that paid it first. The list is ready to pass to the Reputation Registry's `getSummary` as `clientAddresses` |
 | `evidence_pack_quote` | Price and URL of a paid evidence pack (1 to 25 cents in USDC over x402); it does not pay. `precheck` (5 cents) is the routine check before you pay or hire an agent, and takes `payto`, the address you were given; `venue` (3 cents) says what one address is; `builders` (1 cent) lists the ERC-8021 Builder Codes on an agent's payments |
 
