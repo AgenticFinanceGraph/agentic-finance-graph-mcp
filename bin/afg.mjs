@@ -15,8 +15,10 @@
    afg tools                      list the tools
 
    Environment: AFG_MCP_URL overrides the endpoint (default https://agenticfinancegraph.com/mcp). */
+import { forTerminal } from "./terminal.mjs";
+
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
-const VERSION = "0.2.2";
+const VERSION = "0.2.8";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -31,7 +33,7 @@ async function tool(name, args) {
   if (j.result.isError) throw new Error(text);
   try { return JSON.parse(text); } catch { return text; }
 }
-const print = (x) => process.stdout.write((typeof x === "string" ? x : JSON.stringify(x, null, 2)) + "\n");
+const print = (x) => process.stdout.write(forTerminal(typeof x === "string" ? x : JSON.stringify(x, null, 2)) + "\n");
 
 async function bridge() {
   /* newline-delimited JSON-RPC on stdin/stdout, forwarded to the remote endpoint */
@@ -77,4 +79,4 @@ try {
     case "--version": case "-v": print(VERSION); break;
     default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | quote <kind> <id> | tools | mcp\n\nData: " + URL_);
   }
-} catch (e) { process.stderr.write("afg: " + (e.message || e) + "\n"); process.exit(1); }
+} catch (e) { process.stderr.write("afg: " + forTerminal(e.message || e) + "\n"); process.exit(1); }
