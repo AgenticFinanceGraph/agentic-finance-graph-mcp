@@ -11,14 +11,19 @@
    afg def <definition-id>        a frozen metric definition
    afg history <metric> [range]   a metric's history (24h, 7d, 30d, 90d)
    afg quote <kind> <id> [payto]  price and URL of an evidence pack (does not pay); precheck takes the address you are about to pay
+   afg verify <agent-id>          recompute one agent's proof against the signed Merkle-sum head (exit 1 on failure)
    afg mcp                        run as a stdio MCP server (for clients without remote MCP)
    afg tools                      list the tools
 
-   Environment: AFG_MCP_URL overrides the endpoint (default https://agenticfinancegraph.com/mcp). */
+   Environment: AFG_MCP_URL overrides the endpoint (default https://agenticfinancegraph.com/mcp);
+   AFG_API_URL overrides the API origin for `verify` (default: the MCP URL without /mcp);
+   AFG_SUMLOG_PUBKEY pins the 32-byte hex Ed25519 key for `verify` instead of the one the head answer carries. */
 import { forTerminal } from "./terminal.mjs";
+import { verifyAgent } from "./sumlog.mjs";
 
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
-const VERSION = "0.2.8";
+const API_ = process.env.AFG_API_URL || URL_.replace(/\/mcp\/?$/, "");
+const VERSION = "0.2.9";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -34,6 +39,27 @@ async function tool(name, args) {
   try { return JSON.parse(text); } catch { return text; }
 }
 const print = (x) => process.stdout.write(forTerminal(typeof x === "string" ? x : JSON.stringify(x, null, 2)) + "\n");
+
+async function getJson(path) {
+  const r = await fetch(API_ + path, { headers: { accept: "application/json", "user-agent": "afg-cli/" + VERSION }, signal: AbortSignal.timeout(30000) });
+  const t = await r.text();
+  try { return JSON.parse(t); } catch { throw new Error("unexpected answer from " + API_ + path + " (HTTP " + r.status + ")"); }
+}
+
+/* afg verify <agent-id>: fetch the signed head and the agent's proof, recompute everything, print one line per check. */
+async function verifyCmd(id) {
+  if (!id) throw new Error("usage: afg verify <agent-id>");
+  const headDoc = await getJson("/api/sum-log");
+  const proofDoc = await getJson("/api/sum-log?agent=" + encodeURIComponent(id));
+  if (proofDoc.ok === false || proofDoc.error) throw new Error("no proof for agent " + id + (proofDoc.error ? ": " + proofDoc.error : ""));
+  const { ok, checks } = verifyAgent(headDoc, proofDoc, { publicKeyHex: process.env.AFG_SUMLOG_PUBKEY });
+  const head = proofDoc.head || {};
+  const rec = proofDoc.record || {};
+  const lines = checks.map((c) => (c.ok ? "pass  " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
+  lines.push("", (ok ? "PASS" : "FAIL") + ": agent " + id + ", " + rec.leaves + " counted payments, " + rec.total_usd + " USD; head of " + new Date(Number(head.timestamp_ms)).toISOString() + ", " + head.leaves + " leaves, " + head.agents + " agents, key " + (head.key_id || "?") + (process.env.AFG_SUMLOG_PUBKEY ? " (pinned)" : " (from the head answer; pin it with AFG_SUMLOG_PUBKEY)"));
+  print(lines.join("\n"));
+  if (!ok) process.exit(1);
+}
 
 async function bridge() {
   /* newline-delimited JSON-RPC on stdin/stdout, forwarded to the remote endpoint */
@@ -74,9 +100,10 @@ try {
     case "since": print(await tool("since_last", { metric_id: a1 || "", window: a2 || "sweep" })); break;
     case "payers": print(await tool("counterparty_preview", a1 ? { address: a1 } : {})); break;
     case "statement": print(await tool("agent_statement", { id: a1 || "" })); break;
+    case "verify": await verifyCmd(a1); break;
     case "tools": { const j = await post({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }); print(j.result.tools.map((t) => t.name.padEnd(22) + t.title).join("\n")); break; }
     case "mcp": await bridge(); break;
     case "--version": case "-v": print(VERSION); break;
-    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | quote <kind> <id> | tools | mcp\n\nData: " + URL_);
+    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | verify <id> | quote <kind> <id> | tools | mcp\n\nData: " + URL_);
   }
 } catch (e) { process.stderr.write("afg: " + forTerminal(e.message || e) + "\n"); process.exit(1); }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.9 — 14 October 2026
+
+Nothing changes for MCP clients.
+
+- **`afg verify <agent-id>`.** Recomputes one agent's record against the signed Merkle-sum head (`sumlog.v1`) with nothing but node:crypto: the leaf hash, the climb to `head.agent_root`, the summed amount against `head.sum_micro`, and the Ed25519 signature on the head. Prints one line per check and exits 1 on any failure. `AFG_SUMLOG_PUBKEY` pins the key instead of taking it from the answer. Tested against a local stand-in server with a hand-built three-leaf tree: one changed byte in a sum, a sibling or the signature fails.
+- The lockfile version now matches the package.
+
 ## 0.2.8 — 14 October 2026
 
 - **Terminal output is safe from stranger-written text.** Agent names, descriptions and token symbols come from strangers. Control characters (ANSI escape sequences), DEL, C1 controls and Unicode direction overrides in them are now shown as visible `\uXXXX` escapes instead of acting on the terminal (`bin/terminal.mjs`). `afg mcp` still forwards JSON unchanged.

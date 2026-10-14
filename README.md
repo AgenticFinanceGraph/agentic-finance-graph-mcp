@@ -90,7 +90,10 @@ npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp since actors_l7_plus
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp payers 0x4cd00e387622c35bddb9b4c962c136462338bc31
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp statement 53008
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp quote precheck 53008 0x0e84ddedaae6a779c462c22a59f301ec31b6b808
+npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp verify 45978
 ```
+
+`afg verify <agent-id>` trusts nothing it did not recompute: it fetches the signed head of the Merkle-sum log ([`sumlog.v1`](https://agenticfinancegraph.com/def/sumlog.v1)) and the agent's proof, rebuilds the leaf and the path to `head.agent_root`, checks that the summed amount equals the whole counted total, and verifies the Ed25519 signature on the head. One line per check; exit code 1 on any failure. Set `AFG_SUMLOG_PUBKEY` to the 32-byte hex key you were given out of band to stop trusting the key printed in the answer.
 
 Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-graph-mcp`, then run `afg state`.
 
