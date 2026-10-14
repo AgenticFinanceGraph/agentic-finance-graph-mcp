@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8 — 14 October 2026
+
+- **Terminal output is safe from stranger-written text.** Agent names, descriptions and token symbols come from strangers. Control characters (ANSI escape sequences), DEL, C1 controls and Unicode direction overrides in them are now shown as visible `\uXXXX` escapes instead of acting on the terminal (`bin/terminal.mjs`). `afg mcp` still forwards JSON unchanged.
+- `afg --version` reported 0.2.2; it now matches the package.
+- First tests: `npm test` (node:test, no dependencies), including end-to-end runs of the CLI and the bridge against a local stand-in server.
+
 ## 0.2.7 — 13 October 2026, 21:00 UTC (server 1.7.0)
 
 Nothing to install for MCP clients; the CLI is unchanged.

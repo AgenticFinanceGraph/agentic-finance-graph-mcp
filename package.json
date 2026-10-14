@@ -1,6 +1,6 @@
 {
   "name": "agentic-finance-graph",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Agentic Finance Graph from the command line and as an MCP server: the independent ledger of money held and spent by AI agents on Base.",
   "type": "module",
   "bin": {
@@ -33,5 +33,8 @@
   },
   "bugs": {
     "url": "https://github.com/AgenticFinanceGraph/agentic-finance-graph-mcp/issues"
+  },
+  "scripts": {
+    "test": "node --test"
   }
 }
