@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 16 October 2026
+
+The security layer, in shadow / log-only mode. Nothing here moves money or blocks a payment; every answer is a measurement with its time and definition id.
+
+- **Seven new tools on the server**, mirrored here: `agent_pattern` (is the agent's newest payment in character, `behaviour.out_of_character.v2`), `payee_facts` (seven measured facts about an address, `payee.facts.v1`), `gate_check` (a decision under a policy in the AP2 constraint vocabulary, recorded log-only), `agent_pass` (eight checks at one moment, `agent.pass.v2`, unsigned in shadow), `blast_radius` (`agent.blast_radius.v1`), and `canary_register` / `canary_status` for signed-in operators (`canary.trigger.v1`).
+- **CLI:** `afg pattern`, `afg facts`, `afg gate`, `afg pass`, `afg blast`.
+- **`bin/x402-gate-hook.mjs`:** an `onBeforePaymentCreation` hook for `@x402/core` 2.x clients that asks `gate_check` before signing and aborts on the decisions the operator chooses; fail mode is the operator's (`warn` by default, `abort` or `allow`). Ten new tests (`npm test`: 26).
+- **Stranger-written text is fenced on the server** (14–16 Oct 2026): `declared_name`, `endpoint`, feedback `uri`/`file_uri`, `tag1`/`tag2` and caller echoes now arrive as `{untrusted: true, source, text}`, cleaned and length-capped; the server's instructions tell every client to quote them as data. The CLI prints answers as JSON, so nothing here changed; a client that read `declared_name` as a string reads `.text` now.
+
 ## 0.2.9 — 14 October 2026
 
 Nothing changes for MCP clients.
