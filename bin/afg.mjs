@@ -12,6 +12,11 @@
    afg history <metric> [range]   a metric's history (24h, 7d, 30d, 90d)
    afg quote <kind> <id> [payto]  price and URL of an evidence pack (does not pay); precheck takes the address you are about to pay
    afg verify <agent-id>          recompute one agent's proof against the signed Merkle-sum head (exit 1 on failure)
+   afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, shadow)
+   afg facts <payee> [agent] [usd] seven measured facts about an address before paying it (payee.facts.v1)
+   afg gate <agent> <payee> <usd> [policy]   the Gate's decision under a named policy (log-only: recorded, never enforced by us)
+   afg pass <agent-id>            the Agent Pass: eight checks at one moment, what held and what could not be checked
+   afg blast <agent-id|0xwallet>  what a stolen key would move at one block (agent.blast_radius.v1)
    afg mcp                        run as a stdio MCP server (for clients without remote MCP)
    afg tools                      list the tools
 
@@ -23,7 +28,7 @@ import { verifyAgent } from "./sumlog.mjs";
 
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
 const API_ = process.env.AFG_API_URL || URL_.replace(/\/mcp\/?$/, "");
-const VERSION = "0.2.9";
+const VERSION = "0.3.0";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -101,9 +106,20 @@ try {
     case "payers": print(await tool("counterparty_preview", a1 ? { address: a1 } : {})); break;
     case "statement": print(await tool("agent_statement", { id: a1 || "" })); break;
     case "verify": await verifyCmd(a1); break;
+    /* 16 Oct 2026: the security layer (shadow / log-only): pattern, facts, gate, pass, blast */
+    case "pattern": print(await tool("agent_pattern", { agent: a1 || "" })); break;
+    case "facts": print(await tool("payee_facts", Object.assign({ payee: a1 || "" }, a2 ? { agent: a2 } : {}, a3 ? { amount_usd: Number(a3) } : {}))); break;
+    case "gate": {
+      const amount = Number(a3);
+      if (!a1 || !a2 || !Number.isFinite(amount)) throw new Error("usage: afg gate <agent> <payee 0x…> <usd> [policy: log-only|balanced|recommended|recommended-v3|strict]");
+      const policy = process.argv[6] || "log-only";
+      print(await tool("gate_check", { agent: a1, payee: a2, amount_usd: amount, policy_name: policy })); break;
+    }
+    case "pass": print(await tool("agent_pass", { agent: a1 || "" })); break;
+    case "blast": print(await tool("blast_radius", /^0x[0-9a-fA-F]{40}$/.test(a1 || "") ? { wallet: a1 } : { agent: a1 || "" })); break;
     case "tools": { const j = await post({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }); print(j.result.tools.map((t) => t.name.padEnd(22) + t.title).join("\n")); break; }
     case "mcp": await bridge(); break;
     case "--version": case "-v": print(VERSION); break;
-    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | verify <id> | quote <kind> <id> | tools | mcp\n\nData: " + URL_);
+    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | verify <id> | quote <kind> <id> | tools | mcp\n  afg pattern <id> | facts <payee> [agent] [usd] | gate <agent> <payee> <usd> [policy] | pass <id> | blast <id|0xwallet>\n    (the security layer, shadow / log-only: measurements, never verdicts; nothing is blocked by us)\n\nData: " + URL_);
   }
 } catch (e) { process.stderr.write("afg: " + forTerminal(e.message || e) + "\n"); process.exit(1); }
