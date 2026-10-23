@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.1 — 23 October 2026
+
+Nothing changes for MCP clients.
+
+- **`afg chaincheck <agent-id>`.** It checks an agent's free record against the chain through a public Base RPC we do not run (`AFG_BASE_RPC` to use your own):
+  - the mint transaction (account and time);
+  - each open binding (`ownerOf`, `getAgentWallet`, minting account);
+  - every payment in the money path: a successful stablecoin transfer, matched by contract address, from a bound wallet to the stated recipient, for the stated amount, after the registration.
+- A claim the RPC did not return is shown as unread, never as passed. Calls go in batches of 8, and missing answers are retried one by one.
+- Exit code 1 only when a claim read from the chain does not hold. On 23 Oct the top 10 ranked agents and five others passed every claim.
+- Eight new tests (`npm test`: 34).
+
 ## 0.3.0 — 16 October 2026
 
 The security layer, in shadow / log-only mode. Nothing here moves money or blocks a payment; every answer is a measurement with its time and definition id.
