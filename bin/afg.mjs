@@ -13,6 +13,7 @@
    afg quote <kind> <id> [payto]  price and URL of an evidence pack (does not pay); precheck takes the address you are about to pay
    afg verify <agent-id>          recompute one agent's proof against the signed Merkle-sum head (exit 1 on failure)
    afg chaincheck <agent-id>      check the agent's free record against a public Base RPC: its mint, its open bindings, every payment in its money path (exit 1 on failure)
+   afg logwatch [state-file]      outside monitor for the statement log: head signature now, and a verified consistency proof from the head kept last time (exit 1 if history was rewritten)
    afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, shadow)
    afg facts <payee> [agent] [usd] seven measured facts about an address before paying it (payee.facts.v1)
    afg gate <agent> <payee> <usd> [policy]   the Gate's decision under a named policy (log-only: recorded, never enforced by us)
@@ -24,14 +25,16 @@
    Environment: AFG_MCP_URL overrides the endpoint (default https://agenticfinancegraph.com/mcp);
    AFG_API_URL overrides the API origin for `verify` (default: the MCP URL without /mcp);
    AFG_BASE_RPC sets the RPC `chaincheck` reads (default https://mainnet.base.org, which we do not run);
+   AFG_LOG_PUBKEY pins the statement-log key for `logwatch`;
    AFG_SUMLOG_PUBKEY pins the 32-byte hex Ed25519 key for `verify` instead of the one the head answer carries. */
 import { forTerminal } from "./terminal.mjs";
 import { verifyAgent } from "./sumlog.mjs";
 import { chainCheck } from "./chaincheck.mjs";
+import { logWatch } from "./logwatch.mjs";
 
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
 const API_ = process.env.AFG_API_URL || URL_.replace(/\/mcp\/?$/, "");
-const VERSION = "0.3.1";
+const VERSION = "0.3.2";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -109,6 +112,14 @@ try {
     case "payers": print(await tool("counterparty_preview", a1 ? { address: a1 } : {})); break;
     case "statement": print(await tool("agent_statement", { id: a1 || "" })); break;
     case "verify": await verifyCmd(a1); break;
+    case "logwatch": {
+      const res = await logWatch(getJson, a1);
+      const lines = res.checks.map((c) => (c.ok ? "pass  " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
+      lines.push("", (res.ok ? "PASS" : "FAIL") + ": statement log at " + API_ + (res.ok ? "; head kept in " + res.file : "; the head was NOT replaced in " + res.file));
+      print(lines.join("\n"));
+      if (!res.ok) process.exit(1);
+      break;
+    }
     case "chaincheck": {
       if (!a1) throw new Error("usage: afg chaincheck <agent-id>");
       const rec = await tool("agent_record", { id: a1 });
@@ -134,6 +145,6 @@ try {
     case "tools": { const j = await post({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }); print(j.result.tools.map((t) => t.name.padEnd(22) + t.title).join("\n")); break; }
     case "mcp": await bridge(); break;
     case "--version": case "-v": print(VERSION); break;
-    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | verify <id> | chaincheck <id> | quote <kind> <id> | tools | mcp\n  afg pattern <id> | facts <payee> [agent] [usd] | gate <agent> <payee> <usd> [policy] | pass <id> | blast <id|0xwallet>\n    (the security layer, shadow / log-only: measurements, never verdicts; nothing is blocked by us)\n\nData: " + URL_);
+    default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | verify <id> | chaincheck <id> | logwatch | quote <kind> <id> | tools | mcp\n  afg pattern <id> | facts <payee> [agent] [usd] | gate <agent> <payee> <usd> [policy] | pass <id> | blast <id|0xwallet>\n    (the security layer, shadow / log-only: measurements, never verdicts; nothing is blocked by us)\n\nData: " + URL_);
   }
 } catch (e) { process.stderr.write("afg: " + forTerminal(e.message || e) + "\n"); process.exit(1); }

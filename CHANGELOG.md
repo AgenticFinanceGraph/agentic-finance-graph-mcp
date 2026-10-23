@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.2 — 23 October 2026
+
+Nothing changes for MCP clients.
+
+- **`afg logwatch [state-file]`**, an outside monitor for the statement log:
+  - it checks the signature on the current head;
+  - it verifies an RFC 9162 consistency proof from the head kept on the previous run;
+  - it reports a rewritten history, a shrinking tree or a changed key, with exit code 1.
+- On 23 Oct the live log of 153 entries verified, including proofs from sizes 1, 2, 64, 100, 137 and 152.
+- Four new tests, built on a reference tree written from the RFC (`npm test`: 38).
+
 ## 0.3.1 — 23 October 2026
 
 Nothing changes for MCP clients.

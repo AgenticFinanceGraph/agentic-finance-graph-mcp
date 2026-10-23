@@ -98,6 +98,7 @@ npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp statement 53008
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp quote precheck 53008 0x0e84ddedaae6a779c462c22a59f301ec31b6b808
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp verify 45978
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp chaincheck 57067
+npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp logwatch
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp pattern 57657
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp facts 0x424b266c22509a9eb47bcb5b908f40c1157cc2a1 45978 100
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp gate 45978 0x424b266c22509a9eb47bcb5b908f40c1157cc2a1 100 recommended-v3
@@ -123,6 +124,12 @@ The hook prices USDC, USDT and DAI on Base; other assets and networks are allowe
 `afg verify <agent-id>` trusts nothing it did not recompute: it fetches the signed head of the Merkle-sum log ([`sumlog.v1`](https://agenticfinancegraph.com/def/sumlog.v1)) and the agent's proof, rebuilds the leaf and the path to `head.agent_root`, checks that the summed amount equals the whole counted total, and verifies the Ed25519 signature on the head. One line per check; exit code 1 on any failure. Set `AFG_SUMLOG_PUBKEY` to the 32-byte hex key you were given out of band to stop trusting the key printed in the answer.
 
 `afg chaincheck <agent-id>` checks an agent's free record against the chain itself, through a public Base RPC we do not run (`https://mainnet.base.org` by default; set `AFG_BASE_RPC` to use your own). It reads the mint transaction (minted to the stated account, at the stated time), calls the registry for each open binding (`ownerOf`, `getAgentWallet`; a minting-account binding must equal the account the registration was minted to), and reads the receipt of every payment in the record's money path: a successful USDC, USDT, EURC or DAI transfer, by contract address, from one of the agent's bound wallets to the stated recipient, for the stated amount, after the registration. One line per claim; a claim the RPC did not return is shown as unread, never as passed; exit code 1 if any claim read from the chain does not hold.
+
+`afg logwatch [state-file]` is an outside monitor for the [statement log](https://agenticfinancegraph.com/def/agent.statement.log.v1) (RFC 6962 tree of every signed 3-hour statement root). Run it once and keep running it, a daily cron is enough.
+- **Every run:** it checks the Ed25519 signature on the current signed tree head.
+- **Later runs:** it fetches a consistency proof from the head it kept last time and verifies it the RFC 9162 way.
+- **A failed proof** means the published history was rewritten. A shrinking tree or a changed signing key is reported too.
+- **Where the head is kept:** `~/.afg-statement-log.json` by default. `AFG_LOG_PUBKEY` pins the key.
 
 Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-graph-mcp`, then run `afg state`.
 
