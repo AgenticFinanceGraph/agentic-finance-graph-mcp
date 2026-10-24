@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.3 — 24 October 2026
+
+Nothing changes for MCP clients.
+
+- **`afg editioncheck <period>`**, a reader's check of a State of Agent Money edition (`2026-09`, or `2026-Q4` when quarters exist):
+  - the edition file's SHA-256 is found in the statement log as `publication/1|<slug>|<sha>|<at>` (the log's signed head is `afg logwatch`'s job);
+  - the registrations minted in the period and the total at its end are re-derived from the ERC-8004 Identity Registry at the period's first and last block, through a public Base RPC we do not run (agent ids are sequential, so the highest id that answers `ownerOf` at a block is the count), and compared with the edition's figures;
+  - every definition id the edition cites resolves on `/api/def`;
+  - counted payments are not re-derived (they need the ledger's binding set); `afg chaincheck <agent>` does that for one agent.
+- On 24 Oct the September 2026 edition passed: 16,013 minted between blocks 50,715,727 and 52,011,727 and 96,637 at the end, both equal to the file.
+
 ## 0.3.2 — 23 October 2026
 
 Nothing changes for MCP clients.

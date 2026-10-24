@@ -14,6 +14,7 @@
    afg verify <agent-id>          recompute one agent's proof against the signed Merkle-sum head (exit 1 on failure)
    afg chaincheck <agent-id>      check the agent's free record against a public Base RPC: its mint, its open bindings, every payment in its money path (exit 1 on failure)
    afg logwatch [state-file]      outside monitor for the statement log: head signature now, and a verified consistency proof from the head kept last time (exit 1 if history was rewritten)
+   afg editioncheck <period>      a reader's check of a State of Agent Money edition (YYYY-MM or YYYY-Qn): its hash in the statement log, its registration figures re-derived from the registry at the period's blocks, its definitions (exit 1 on failure)
    afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, shadow)
    afg facts <payee> [agent] [usd] seven measured facts about an address before paying it (payee.facts.v1)
    afg gate <agent> <payee> <usd> [policy]   the Gate's decision under a named policy (log-only: recorded, never enforced by us)
@@ -31,10 +32,11 @@ import { forTerminal } from "./terminal.mjs";
 import { verifyAgent } from "./sumlog.mjs";
 import { chainCheck } from "./chaincheck.mjs";
 import { logWatch } from "./logwatch.mjs";
+import { editionCheck } from "./editioncheck.mjs";
 
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
 const API_ = process.env.AFG_API_URL || URL_.replace(/\/mcp\/?$/, "");
-const VERSION = "0.3.2";
+const VERSION = "0.3.3";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -127,6 +129,16 @@ try {
       const res = await chainCheck(rec);
       const lines = res.checks.map((c) => (c.ok === true ? "pass  " : c.ok === null ? "unread " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
       lines.push("", (res.ok ? "PASS" : "FAIL") + ": " + res.checks.filter((c) => c.ok === true).length + "/" + res.checks.length + " claims in the record of agent " + rec.agent.token_id + " (as of " + res.as_of + ") hold on " + res.rpc + (res.unread ? "; " + res.unread + " could not be read from it" : "") + (res.failed ? "; " + res.failed + " did not hold" : ""));
+      print(lines.join("\n"));
+      if (!res.ok) process.exit(1);
+      break;
+    }
+    case "editioncheck": {
+      if (!a1 || !/^\d{4}-(0[1-9]|1[0-2]|Q[1-4])$/i.test(a1)) throw new Error("usage: afg editioncheck <YYYY-MM | YYYY-Qn>");
+      const fetchText = async (path) => { const r = await fetch(API_ + path, { headers: { accept: "application/json", "user-agent": "afg-cli/" + VERSION }, signal: AbortSignal.timeout(30000) }); if (!r.ok) throw new Error("HTTP " + r.status + " for " + path); return r.text(); };
+      const res = await editionCheck(a1, { api: API_, rpcUrl: process.env.AFG_BASE_RPC || "https://mainnet.base.org", fetchText });
+      const lines = res.checks.map((c) => (c.ok === true ? "pass  " : c.ok === null ? "unread " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
+      lines.push("", (res.ok ? "PASS" : "FAIL") + ": " + res.checks.filter((c) => c.ok === true).length + "/" + res.checks.filter((c) => c.ok !== null).length + " checks on " + res.slug + " (" + res.status + ", produced " + res.produced_at + ", file SHA-256 " + res.sha.slice(0, 16) + "…) at " + res.as_of);
       print(lines.join("\n"));
       if (!res.ok) process.exit(1);
       break;
