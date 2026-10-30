@@ -16,7 +16,7 @@
    afg logwatch [state-file]      outside monitor for the statement log: head signature now, and a verified consistency proof from the head kept last time (exit 1 if history was rewritten)
    afg editioncheck <period>      a reader's check of a State of Agent Money edition (YYYY-MM or YYYY-Qn): its hash in the statement log, its registration figures re-derived from the registry at the period's blocks, its definitions (exit 1 on failure)
    afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, shadow)
-   afg facts <payee> [agent] [usd] seven measured facts about an address before paying it (payee.facts.v1)
+   afg facts <payee> [agent] [usd] nine measured facts about an address before paying it (payee.facts.v2)
    afg gate <agent> <payee> <usd> [policy]   the Gate's decision under a named policy (log-only: recorded, never enforced by us)
    afg pass <agent-id>            the Agent Pass: eight checks at one moment, what held and what could not be checked
    afg blast <agent-id|0xwallet>  what a stolen key would move at one block (agent.blast_radius.v1)
@@ -36,7 +36,7 @@ import { editionCheck } from "./editioncheck.mjs";
 
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
 const API_ = process.env.AFG_API_URL || URL_.replace(/\/mcp\/?$/, "");
-const VERSION = "0.3.3";
+const VERSION = "0.3.4";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.4 — 30 October 2026
+
+Nothing changes for MCP clients.
+
+- README: a "Works with your wallet" section with seven recipes read from the wallets' own documentation on 30 Oct 2026 (Coinbase Agentic Wallet, AgentCash, Circle Agent Wallets, Alchemy CLI wallet, Fireblocks x402 agent, a Turnkey signer with an x402 client, Amazon Bedrock AgentCore Gateway), mirrored from the site's MCP guide; the tools table says payee_facts v2 (nine facts); packs cost 1 to 30 cents.
+- `afg facts` help text says nine facts under payee.facts.v2 (the endpoint has served v2 since 24 Oct 2026).
+- The remote server reports version 1.8.0 (25 tools, 5 prompts).
+
 ## 0.3.3 — 24 October 2026
 
 Nothing changes for MCP clients.
