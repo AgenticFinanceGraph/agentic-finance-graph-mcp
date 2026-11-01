@@ -1,4 +1,4 @@
-/* x402-gate-hook.mjs — an x402 client hook that asks Agentic Finance Graph's free, log-only Gate before a payment
+/* x402-gate-hook.mjs — an x402 client hook that asks Agentic Finance Graph's free Gate (advisory) before a payment
    is signed, and lets the operator decide what to do with the answer. No dependencies: Node 18+ (global fetch).
 
    x402 (@x402/core 2.x) runs `onBeforePaymentCreation` hooks after its own spend controls and before the scheme signs

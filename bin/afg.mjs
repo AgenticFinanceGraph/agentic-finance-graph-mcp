@@ -15,9 +15,9 @@
    afg chaincheck <agent-id>      check the agent's free record against a public Base RPC: its mint, its open bindings, every payment in its money path (exit 1 on failure)
    afg logwatch [state-file]      outside monitor for the statement log: head signature now, and a verified consistency proof from the head kept last time (exit 1 if history was rewritten)
    afg editioncheck <period>      a reader's check of a State of Agent Money edition (YYYY-MM or YYYY-Qn): its hash in the statement log, its registration figures re-derived from the registry at the period's blocks, its definitions (exit 1 on failure)
-   afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, shadow)
+   afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, advisory)
    afg facts <payee> [agent] [usd] nine measured facts about an address before paying it (payee.facts.v2)
-   afg gate <agent> <payee> <usd> [policy]   the Gate's decision under a named policy (log-only: recorded, never enforced by us)
+   afg gate <agent> <payee> <usd> [policy]   the Gate's decision under a named policy (advisory: recorded, never enforced by us)
    afg pass <agent-id>            the Agent Pass: eight checks at one moment, what held and what could not be checked
    afg blast <agent-id|0xwallet>  what a stolen key would move at one block (agent.blast_radius.v1)
    afg mcp                        run as a stdio MCP server (for clients without remote MCP)
@@ -143,7 +143,7 @@ try {
       if (!res.ok) process.exit(1);
       break;
     }
-    /* 16 Oct 2026: the security layer (shadow / log-only): pattern, facts, gate, pass, blast */
+    /* 16 Oct 2026: the security layer (advisory from 1 Nov 2026): pattern, facts, gate, pass, blast */
     case "pattern": print(await tool("agent_pattern", { agent: a1 || "" })); break;
     case "facts": print(await tool("payee_facts", Object.assign({ payee: a1 || "" }, a2 ? { agent: a2 } : {}, a3 ? { amount_usd: Number(a3) } : {}))); break;
     case "gate": {
