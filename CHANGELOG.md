@@ -1,5 +1,24 @@
 # Changelog
 
+## Server 1.9.1 — 7 November 2026 (package unchanged at 0.3.4)
+
+Nothing to install or change for MCP clients; the remote server changed.
+
+- The remote server reports version 1.9.1 (26 tools, 5 prompts).
+- **1.9.0:**
+  - `pay_check` is the front door ("start here before your agent pays or hires another agent"), and every tool that overlaps it says when to use it;
+  - `agent_record`, `agent_statement` and `evidence_pack_quote` accept `agent` as well as `id`;
+  - a not-found answer carries `try_next`;
+  - `ladder_dynamics` has a `compact` mode;
+  - the canary tools say first that they need a Desk session.
+- **1.9.1:** `agent_pass` names the portable forms:
+  - the same Pass as a JWT (`/api/pass?agent=<id>&format=jwt`, EdDSA, keys at `/.well-known/jwks.json`);
+  - as a W3C Verifiable Credential in the JWT encoding (`&format=vc`, issuer `did:web:agenticfinancegraph.com`, document at `/.well-known/did.json`).
+
+  Both verify offline with standard libraries (jose, did-jwt-vc). Definition: `agent.pass.portable.v1`.
+- **The Watch** behind `agent_pattern`, `gate_check`, `agent_pass` and `self_check` is `behaviour.out_of_character.v3` from 7 Nov 08:17 UTC. One change: a payee's EIP-7702 account type no longer counts as a reason when 100 or more registered agents paid that payee before. It was pre-registered, and on the evaluation data it scores exactly as v2.
+- **The income figures in `market_state`** were corrected on 7 Nov. The income reader had read 2,640 of 46,509 ranked wallets; from 10:28 UTC every ranked wallet is read, a hop is judged on the agent's own wallet, and a transfer between one agent's wallets is a self-transfer. Income over 30 days moved from $912,254.40 to $13,885,198.37. It is money received, not earned: payments from other agents' wallets were 0.9% of all income. Compare from 8 Nov. Register entries `cp-2026-11-07-income-coverage` and `cp-2026-11-07-income-hop-rule` at https://agenticfinancegraph.com/api/changepoints.
+
 ## 0.3.4 — 30 October 2026
 
 Nothing changes for MCP clients.
