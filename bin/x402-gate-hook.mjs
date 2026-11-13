@@ -17,7 +17,11 @@
    recommended-v3 | strict) or policy (your own object in the AP2 vocabulary), abortOn (decisions that abort; default
    ["block"]), onUnavailable ("warn" allows and logs when AFG cannot be reached, the default; "abort" fails closed;
    "allow" fails open silently), minUsd (skip the call below this value), log (a function receiving one object per
-   decision), url (the MCP endpoint), fetchImpl and timeoutMs (tests). */
+   decision), url (the MCP endpoint), fetchImpl and timeoutMs (tests).
+
+   Since 13 Nov 2026 each decision object passed to log carries receipt: the Gate's signed receipt (gate.receipt.v1: agent,
+   payee, amount, policy and its hash, decision, reasons, time; Ed25519), to keep beside the payment as proof that it was
+   checked first. It is null when the Gate gave no receipt. */
 
 export const MCP_URL = "https://agenticfinancegraph.com/mcp";
 export const DECISIONS = ["block", "warn", "log", "allow"];
@@ -89,7 +93,7 @@ export function makeGateHook(opts = {}) {
     }
     const decision = check.decision || "allow";
     const facts = { kind: check.facts?.kind ?? null, paid_by_registered_agents: check.facts?.pop ?? null, frozen: !!check.facts?.frozen, v2: check.score_v2 ? { level: check.score_v2.level, reasons: check.score_v2.reasons } : null, as_of: check.as_of || null, decision_id: check.decision_id || null };
-    if (abortOn.includes(decision)) { const reason = `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}; decision ${check.decision_id}; as of ${check.as_of})`; log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts }); return { abort: true, reason }; }
-    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts });
+    if (abortOn.includes(decision)) { const reason = `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}; decision ${check.decision_id}; as of ${check.as_of})`; log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts, receipt: check.receipt || null }); return { abort: true, reason }; }
+    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts, receipt: check.receipt || null });
   };
 }
