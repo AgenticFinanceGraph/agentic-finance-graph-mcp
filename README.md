@@ -115,10 +115,16 @@ A check before an agent pays (`gate_check`, `payee_facts`), a watch after it (`a
 
 [`bin/x402-gate-hook.mjs`](bin/x402-gate-hook.mjs) is an `onBeforePaymentCreation` hook for `@x402/core` 2.x clients. Before the scheme signs, it asks `gate_check` with your agent, the payee, the USD value of what will be signed and your policy, and aborts on the decisions you choose. The default aborts on `block` only and, when AFG cannot be reached, allows and logs a warning (`onUnavailable: "warn"`); `"abort"` fails closed, `"allow"` fails open. No dependencies; tested against a stand-in server (`npm test`).
 
+```bash
+npm install github:AgenticFinanceGraph/agentic-finance-graph-mcp
+```
+
 ```js
-import { makeGateHook } from "agentic-finance-graph-mcp/bin/x402-gate-hook.mjs";
+import { makeGateHook } from "agentic-finance-graph/bin/x402-gate-hook.mjs";   // the package is named agentic-finance-graph
 client.onBeforePaymentCreation(makeGateHook({ agent: "45978", policy_name: "recommended-v3", abortOn: ["block"], log: console.log }));
 ```
+
+A payment on which nothing fired answers `allow` with no reasons. A fact that had nothing to measure (a service paid by 50 or more registered agents, too few transfers in the window) is listed in the facts and becomes a reason only if your policy sets `refuse_conditions.no_reading`; `unavailable` means a read failed (since 13 Nov 2026).
 
 The hook prices USDC, USDT and DAI on Base; other assets and networks are allowed and logged as not checked. A payment the Gate blocks is a block in your client, never ours: AFG records the decision and moves nothing.
 
