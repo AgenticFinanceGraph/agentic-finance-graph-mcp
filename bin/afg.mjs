@@ -14,6 +14,7 @@
    afg verify <agent-id>          recompute one agent's proof against the signed Merkle-sum head (exit 1 on failure)
    afg chaincheck <agent-id>      check the agent's free record against a public Base RPC: its mint, its open bindings, every payment in its money path (exit 1 on failure)
    afg logwatch [state-file]      outside monitor for the statement log: head signature now, and a verified consistency proof from the head kept last time (exit 1 if history was rewritten)
+   afg booksverify <agent> [period]  check an Agent Books statement (agent.books.v1) without trusting the server: hash, signature, log inclusion, Base anchor (exit 1 on failure)
    afg editioncheck <period>      a reader's check of a State of Agent Money edition (YYYY-MM or YYYY-Qn): its hash in the statement log, its registration figures re-derived from the registry at the period's blocks, its definitions (exit 1 on failure)
    afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, advisory)
    afg facts <payee> [agent] [usd] nine measured facts about an address before paying it (payee.facts.v2)
@@ -33,10 +34,11 @@ import { verifyAgent } from "./sumlog.mjs";
 import { chainCheck } from "./chaincheck.mjs";
 import { logWatch } from "./logwatch.mjs";
 import { editionCheck } from "./editioncheck.mjs";
+import { runCli as booksVerify } from "./booksverify.mjs";
 
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
 const API_ = process.env.AFG_API_URL || URL_.replace(/\/mcp\/?$/, "");
-const VERSION = "0.3.4";
+const VERSION = "0.3.5";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -131,6 +133,12 @@ try {
       lines.push("", (res.ok ? "PASS" : "FAIL") + ": " + res.checks.filter((c) => c.ok === true).length + "/" + res.checks.length + " claims in the record of agent " + rec.agent.token_id + " (as of " + res.as_of + ") hold on " + res.rpc + (res.unread ? "; " + res.unread + " could not be read from it" : "") + (res.failed ? "; " + res.failed + " did not hold" : ""));
       print(lines.join("\n"));
       if (!res.ok) process.exit(1);
+      break;
+    }
+    /* 13 Nov 2026: Agent Books (agent.books.v1): check a statement without trusting the server that issued it */
+    case "booksverify": {
+      const code = await booksVerify(process.argv.slice(3), print);
+      if (code) process.exit(code);
       break;
     }
     case "editioncheck": {

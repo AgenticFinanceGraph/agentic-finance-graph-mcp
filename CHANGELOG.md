@@ -1,5 +1,11 @@
 # Changelog
 
+## Server 1.10.0 and package 0.3.5 — 13 November 2026
+
+- **New tool `agent_books`** (27 tools): what one registration paid and received on Base in a closed month (`period: "YYYY-MM"`) or to date, as a statement that is signed, written into the signed statement log and committed to by the daily Base anchor. Also `GET /api/books`. Definition `agent.books.v1`. A record of observed facts, not an audit.
+- **New command `afg booksverify <agent> [period]`** and the standalone `bin/booksverify.mjs`: checks a statement's hash, signature, log inclusion and Base anchor without trusting the server. `--selftest` also shows that altered copies are rejected. Six offline tests.
+- **The daily Base anchor names the Agent Pass log** since 13 Nov (`anchor.v2`): the newest log entry and a Merkle root over the entries since the previous anchor. First transaction in the new format: `0xb5afc90d0a31fd3005a348038e5cf96a8421c13fb4f73736ce2375812a6822f0` (Base block 56,831,072).
+
 ## Server 1.9.1 — 7 November 2026 (package unchanged at 0.3.4)
 
 Nothing to install or change for MCP clients; the remote server changed.
