@@ -26,12 +26,14 @@ Endpoint: `https://agenticfinancegraph.com/mcp` (Streamable HTTP, stateless, no 
 ```json
 {
   "mcpServers": {
-    "afg": { "command": "npx", "args": ["-y", "github:AgenticFinanceGraph/agentic-finance-graph-mcp", "mcp"] }
+    "afg": { "command": "npx", "args": ["-y", "agentic-finance-graph", "mcp"] }
   }
 }
 ```
 
 The `mcp` command forwards each JSON-RPC message to the remote endpoint. It has no dependencies; Node 18 or newer is enough.
+
+The package is on npm as [`agentic-finance-graph`](https://www.npmjs.com/package/agentic-finance-graph) since 14 November 2026 (0.3.6). Straight from this repository works as before: put `github:AgenticFinanceGraph/agentic-finance-graph-mcp` in place of the package name.
 
 Or run the same bridge in a container (the image holds only the bridge; every answer still comes from the remote endpoint):
 
@@ -88,23 +90,23 @@ Ready-made workflows. Clients such as Claude show them in the prompt menu once t
 ## CLI
 
 ```
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp state
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp find 57657
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp ranked 10 9
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp history actors_l7_plus 30d
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp since actors_l7_plus 24h
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp payers 0x4cd00e387622c35bddb9b4c962c136462338bc31
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp statement 53008
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp quote precheck 53008 0x0e84ddedaae6a779c462c22a59f301ec31b6b808
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp verify 45978
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp chaincheck 57067
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp logwatch
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp pattern 57657
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp facts 0x424b266c22509a9eb47bcb5b908f40c1157cc2a1 45978 100
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp gate 45978 0x424b266c22509a9eb47bcb5b908f40c1157cc2a1 100 recommended-v3
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp pass 57657
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp blast 57657
-npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp booksverify 57657 2026-10
+npx -y agentic-finance-graph state
+npx -y agentic-finance-graph find 57657
+npx -y agentic-finance-graph ranked 10 9
+npx -y agentic-finance-graph history actors_l7_plus 30d
+npx -y agentic-finance-graph since actors_l7_plus 24h
+npx -y agentic-finance-graph payers 0x4cd00e387622c35bddb9b4c962c136462338bc31
+npx -y agentic-finance-graph statement 53008
+npx -y agentic-finance-graph quote precheck 53008 0x0e84ddedaae6a779c462c22a59f301ec31b6b808
+npx -y agentic-finance-graph verify 45978
+npx -y agentic-finance-graph chaincheck 57067
+npx -y agentic-finance-graph logwatch
+npx -y agentic-finance-graph pattern 57657
+npx -y agentic-finance-graph facts 0x424b266c22509a9eb47bcb5b908f40c1157cc2a1 45978 100
+npx -y agentic-finance-graph gate 45978 0x424b266c22509a9eb47bcb5b908f40c1157cc2a1 100 recommended-v3
+npx -y agentic-finance-graph pass 57657
+npx -y agentic-finance-graph blast 57657
+npx -y agentic-finance-graph booksverify 57657 2026-10
 ```
 
 ## The security layer (since 16 Oct 2026; advisory since 1 Nov 2026)
@@ -116,11 +118,11 @@ A check before an agent pays (`gate_check`, `payee_facts`), a watch after it (`a
 [`bin/x402-gate-hook.mjs`](bin/x402-gate-hook.mjs) is an `onBeforePaymentCreation` hook for `@x402/core` 2.x clients. Before the scheme signs, it asks `gate_check` with your agent, the payee, the USD value of what will be signed and your policy, and aborts on the decisions you choose. The default aborts on `block` only and, when AFG cannot be reached, allows and logs a warning (`onUnavailable: "warn"`); `"abort"` fails closed, `"allow"` fails open. No dependencies; tested against a stand-in server (`npm test`).
 
 ```bash
-npm install github:AgenticFinanceGraph/agentic-finance-graph-mcp
+npm install agentic-finance-graph
 ```
 
 ```js
-import { makeGateHook } from "agentic-finance-graph/bin/x402-gate-hook.mjs";   // the package is named agentic-finance-graph
+import { makeGateHook } from "agentic-finance-graph/bin/x402-gate-hook.mjs";
 client.onBeforePaymentCreation(makeGateHook({ agent: "45978", policy_name: "recommended-v3", abortOn: ["block"], log: console.log }));
 ```
 
@@ -140,7 +142,7 @@ The hook prices USDC, USDT and DAI on Base; other assets and networks are allowe
 - **A failed proof** means the published history was rewritten. A shrinking tree or a changed signing key is reported too.
 - **Where the head is kept:** `~/.afg-statement-log.json` by default. `AFG_LOG_PUBKEY` pins the key.
 
-Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-graph-mcp`, then run `afg state`.
+Or install it once: `npm install -g agentic-finance-graph`, then run `afg state`.
 
 ## Agent Books: a statement of one agent's money that anyone can check (since 13 Nov 2026)
 
@@ -150,6 +152,7 @@ Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-g
 
 ```
 node bin/booksverify.mjs 57657 2026-10            # or: afg booksverify 57657 2026-10
+node bin/booksverify.mjs --id <books_id>          # a stored statement, by the id at the end of its link
 node bin/booksverify.mjs --file statement.json    # a saved answer
 node bin/booksverify.mjs --selftest 57657 2026-10 # also shows that altered copies are rejected
 ```

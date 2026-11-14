@@ -14,7 +14,8 @@
    afg verify <agent-id>          recompute one agent's proof against the signed Merkle-sum head (exit 1 on failure)
    afg chaincheck <agent-id>      check the agent's free record against a public Base RPC: its mint, its open bindings, every payment in its money path (exit 1 on failure)
    afg logwatch [state-file]      outside monitor for the statement log: head signature now, and a verified consistency proof from the head kept last time (exit 1 if history was rewritten)
-   afg booksverify <agent> [period]  check an Agent Books statement (agent.books.v1) without trusting the server: hash, signature, log inclusion, Base anchor (exit 1 on failure)
+   afg booksverify <agent> [period]  check an Agent Books statement (agent.books.v1) without trusting the server: hash, signature, log inclusion, Base anchor (exit 1 on failure);
+                                     --id <books_id> checks a stored statement by the id at the end of its link, --file <json> a saved answer
    afg editioncheck <period>      a reader's check of a State of Agent Money edition (YYYY-MM or YYYY-Qn): its hash in the statement log, its registration figures re-derived from the registry at the period's blocks, its definitions (exit 1 on failure)
    afg pattern <agent-id>         is the agent's newest payment in character for it (behaviour.out_of_character.v2, advisory)
    afg facts <payee> [agent] [usd] nine measured facts about an address before paying it (payee.facts.v2)
@@ -38,7 +39,7 @@ import { runCli as booksVerify } from "./booksverify.mjs";
 
 const URL_ = process.env.AFG_MCP_URL || "https://agenticfinancegraph.com/mcp";
 const API_ = process.env.AFG_API_URL || URL_.replace(/\/mcp\/?$/, "");
-const VERSION = "0.3.5";
+const VERSION = "0.3.6";
 
 async function post(msg) {
   const r = await fetch(URL_, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "user-agent": "afg-cli/" + VERSION }, body: JSON.stringify(msg), signal: AbortSignal.timeout(30000) });
@@ -73,7 +74,7 @@ async function verifyCmd(id) {
   const lines = checks.map((c) => (c.ok ? "pass  " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
   lines.push("", (ok ? "PASS" : "FAIL") + ": agent " + id + ", " + rec.leaves + " counted payments, " + rec.total_usd + " USD; head of " + new Date(Number(head.timestamp_ms)).toISOString() + ", " + head.leaves + " leaves, " + head.agents + " agents, key " + (head.key_id || "?") + (process.env.AFG_SUMLOG_PUBKEY ? " (pinned)" : " (from the head answer; pin it with AFG_SUMLOG_PUBKEY)"));
   print(lines.join("\n"));
-  if (!ok) process.exit(1);
+  if (!ok) process.exitCode = 1;
 }
 
 async function bridge() {
@@ -121,7 +122,7 @@ try {
       const lines = res.checks.map((c) => (c.ok ? "pass  " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
       lines.push("", (res.ok ? "PASS" : "FAIL") + ": statement log at " + API_ + (res.ok ? "; head kept in " + res.file : "; the head was NOT replaced in " + res.file));
       print(lines.join("\n"));
-      if (!res.ok) process.exit(1);
+      if (!res.ok) process.exitCode = 1;
       break;
     }
     case "chaincheck": {
@@ -132,13 +133,13 @@ try {
       const lines = res.checks.map((c) => (c.ok === true ? "pass  " : c.ok === null ? "unread " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
       lines.push("", (res.ok ? "PASS" : "FAIL") + ": " + res.checks.filter((c) => c.ok === true).length + "/" + res.checks.length + " claims in the record of agent " + rec.agent.token_id + " (as of " + res.as_of + ") hold on " + res.rpc + (res.unread ? "; " + res.unread + " could not be read from it" : "") + (res.failed ? "; " + res.failed + " did not hold" : ""));
       print(lines.join("\n"));
-      if (!res.ok) process.exit(1);
+      if (!res.ok) process.exitCode = 1;
       break;
     }
     /* 13 Nov 2026: Agent Books (agent.books.v1): check a statement without trusting the server that issued it */
     case "booksverify": {
       const code = await booksVerify(process.argv.slice(3), print);
-      if (code) process.exit(code);
+      if (code) process.exitCode = code;
       break;
     }
     case "editioncheck": {
@@ -148,7 +149,7 @@ try {
       const lines = res.checks.map((c) => (c.ok === true ? "pass  " : c.ok === null ? "unread " : "FAIL  ") + c.name + (c.detail ? "  (" + c.detail + ")" : ""));
       lines.push("", (res.ok ? "PASS" : "FAIL") + ": " + res.checks.filter((c) => c.ok === true).length + "/" + res.checks.filter((c) => c.ok !== null).length + " checks on " + res.slug + " (" + res.status + ", produced " + res.produced_at + ", file SHA-256 " + res.sha.slice(0, 16) + "…) at " + res.as_of);
       print(lines.join("\n"));
-      if (!res.ok) process.exit(1);
+      if (!res.ok) process.exitCode = 1;
       break;
     }
     /* 16 Oct 2026: the security layer (advisory from 1 Nov 2026): pattern, facts, gate, pass, blast */
@@ -167,4 +168,4 @@ try {
     case "--version": case "-v": print(VERSION); break;
     default: print("afg " + VERSION + " — Agentic Finance Graph from the command line\n\n  afg state | find <q> | agent <id> | ranked [n] [level] | detections [agent] [n]\n  afg def <id> | history <metric> [range] | since <metric> [window] | payers [address]\n  afg statement <id> | verify <id> | chaincheck <id> | logwatch | quote <kind> <id> | tools | mcp\n  afg pattern <id> | facts <payee> [agent] [usd] | gate <agent> <payee> <usd> [policy] | pass <id> | blast <id|0xwallet>\n    (the security layer, shadow / log-only: measurements, never verdicts; nothing is blocked by us)\n\nData: " + URL_);
   }
-} catch (e) { process.stderr.write("afg: " + forTerminal(e.message || e) + "\n"); process.exit(1); }
+} catch (e) { process.stderr.write("afg: " + forTerminal(e.message || e) + "\n"); process.exitCode = 1; }

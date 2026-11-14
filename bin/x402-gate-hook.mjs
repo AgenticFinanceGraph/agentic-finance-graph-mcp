@@ -10,7 +10,7 @@
    ledger history and a policy in the AP2 constraint vocabulary. AFG never blocks anything itself and records every
    decision; this hook is where the operator's choice lives:
 
-     // npm install github:AgenticFinanceGraph/agentic-finance-graph-mcp   (the package is named agentic-finance-graph)
+     // npm install agentic-finance-graph
      import { makeGateHook } from "agentic-finance-graph/bin/x402-gate-hook.mjs";
      client.onBeforePaymentCreation(makeGateHook({ agent: "45978", policy_name: "recommended-v3", abortOn: ["block"] }));
 
