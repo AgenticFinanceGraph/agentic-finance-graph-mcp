@@ -1,5 +1,10 @@
 # Changelog
 
+## Package 0.3.6 — 14 November 2026 (server unchanged at 1.10.0)
+
+- **On the npm registry.** `npx -y agentic-finance-graph state` runs the CLI, `npm install agentic-finance-graph` installs the package with the x402 Gate hook, and a stdio MCP client takes `"command": "npx", "args": ["-y", "agentic-finance-graph", "mcp"]`. Until today the package installed only from this repository; that form (`github:AgenticFinanceGraph/agentic-finance-graph-mcp`) works as before.
+- **No change in behaviour.** The same code as 0.3.5: the version string, the install lines of the README and of the hook's header, and `mcpName` in `package.json` (the name of the server in the official MCP Registry).
+
 ## Server 1.10.0 and package 0.3.5 — 13 November 2026
 
 - **New tools `fleet_check` and `payer_check`** (29 tools). `fleet_check`: the self-check for up to 60 agents in one answer, or for the registrations one wallet holds, the agents worth a look first (`GET /api/fleet?agents=…` or `?owner=0x…`). `payer_check`: for a seller or a platform, what the ledger holds about the wallet that is paying (`GET /api/payer?wallet=0x…`); a wallet with no registration says so, which is not a statement about the wallet.
