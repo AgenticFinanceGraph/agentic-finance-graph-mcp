@@ -10,14 +10,19 @@
    ledger history and a policy in the AP2 constraint vocabulary. AFG never blocks anything itself and records every
    decision; this hook is where the operator's choice lives:
 
-     import { makeGateHook } from "agentic-finance-graph-mcp/bin/x402-gate-hook.mjs";
+     // npm install github:AgenticFinanceGraph/agentic-finance-graph-mcp   (the package is named agentic-finance-graph)
+     import { makeGateHook } from "agentic-finance-graph/bin/x402-gate-hook.mjs";
      client.onBeforePaymentCreation(makeGateHook({ agent: "45978", policy_name: "recommended-v3", abortOn: ["block"] }));
 
    Options: agent (your agent's token id, slug or bound wallet; required), policy_name (log-only | balanced | recommended |
    recommended-v3 | strict) or policy (your own object in the AP2 vocabulary), abortOn (decisions that abort; default
    ["block"]), onUnavailable ("warn" allows and logs when AFG cannot be reached, the default; "abort" fails closed;
    "allow" fails open silently), minUsd (skip the call below this value), log (a function receiving one object per
-   decision), url (the MCP endpoint), fetchImpl and timeoutMs (tests). */
+   decision), url (the MCP endpoint), fetchImpl and timeoutMs (tests).
+
+   Since 13 Nov 2026 each decision object passed to log carries receipt: the Gate's signed receipt (gate.receipt.v1: agent,
+   payee, amount, policy and its hash, decision, reasons, time; Ed25519), to keep beside the payment as proof that it was
+   checked first. It is null when the Gate gave no receipt. */
 
 export const MCP_URL = "https://agenticfinancegraph.com/mcp";
 export const DECISIONS = ["block", "warn", "log", "allow"];
@@ -89,7 +94,7 @@ export function makeGateHook(opts = {}) {
     }
     const decision = check.decision || "allow";
     const facts = { kind: check.facts?.kind ?? null, paid_by_registered_agents: check.facts?.pop ?? null, frozen: !!check.facts?.frozen, v2: check.score_v2 ? { level: check.score_v2.level, reasons: check.score_v2.reasons } : null, as_of: check.as_of || null, decision_id: check.decision_id || null };
-    if (abortOn.includes(decision)) { const reason = `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}; decision ${check.decision_id}; as of ${check.as_of})`; log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts }); return { abort: true, reason }; }
-    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts });
+    if (abortOn.includes(decision)) { const reason = `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}; decision ${check.decision_id}; as of ${check.as_of})`; log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts, receipt: check.receipt || null }); return { abort: true, reason }; }
+    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts, receipt: check.receipt || null });
   };
 }

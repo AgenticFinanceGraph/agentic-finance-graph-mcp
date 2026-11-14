@@ -104,6 +104,7 @@ npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp facts 0x424b266c2250
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp gate 45978 0x424b266c22509a9eb47bcb5b908f40c1157cc2a1 100 recommended-v3
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp pass 57657
 npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp blast 57657
+npx -y github:AgenticFinanceGraph/agentic-finance-graph-mcp booksverify 57657 2026-10
 ```
 
 ## The security layer (since 16 Oct 2026; advisory since 1 Nov 2026)
@@ -114,10 +115,16 @@ A check before an agent pays (`gate_check`, `payee_facts`), a watch after it (`a
 
 [`bin/x402-gate-hook.mjs`](bin/x402-gate-hook.mjs) is an `onBeforePaymentCreation` hook for `@x402/core` 2.x clients. Before the scheme signs, it asks `gate_check` with your agent, the payee, the USD value of what will be signed and your policy, and aborts on the decisions you choose. The default aborts on `block` only and, when AFG cannot be reached, allows and logs a warning (`onUnavailable: "warn"`); `"abort"` fails closed, `"allow"` fails open. No dependencies; tested against a stand-in server (`npm test`).
 
+```bash
+npm install github:AgenticFinanceGraph/agentic-finance-graph-mcp
+```
+
 ```js
-import { makeGateHook } from "agentic-finance-graph-mcp/bin/x402-gate-hook.mjs";
+import { makeGateHook } from "agentic-finance-graph/bin/x402-gate-hook.mjs";   // the package is named agentic-finance-graph
 client.onBeforePaymentCreation(makeGateHook({ agent: "45978", policy_name: "recommended-v3", abortOn: ["block"], log: console.log }));
 ```
+
+A payment on which nothing fired answers `allow` with no reasons. A fact that had nothing to measure (a service paid by 50 or more registered agents, too few transfers in the window) is listed in the facts and becomes a reason only if your policy sets `refuse_conditions.no_reading`; `unavailable` means a read failed (since 13 Nov 2026).
 
 The hook prices USDC, USDT and DAI on Base; other assets and networks are allowed and logged as not checked. A payment the Gate blocks is a block in your client, never ours: AFG records the decision and moves nothing.
 
@@ -134,6 +141,20 @@ The hook prices USDC, USDT and DAI on Base; other assets and networks are allowe
 - **Where the head is kept:** `~/.afg-statement-log.json` by default. `AFG_LOG_PUBKEY` pins the key.
 
 Or install it once: `npm install -g github:AgenticFinanceGraph/agentic-finance-graph-mcp`, then run `afg state`.
+
+## Agent Books: a statement of one agent's money that anyone can check (since 13 Nov 2026)
+
+`agent_books` (MCP) and `GET /api/books?agent=<id>&period=<YYYY-MM | to-date>` return what one registration paid and received on Base in a closed month or to date: counted payments, what left its control, what was left out and why, counted receipts, detections logged, transfers of the registration. The statement is signed with Ed25519, its hash is a leaf of the signed statement log, and a daily Base transaction commits to that log. Definition: [`agent.books.v1`](https://agenticfinancegraph.com/def/agent.books.v1). It is a record of observed facts: not an audit, not an opinion, nothing about who owns the agent, about tax or about safety.
+
+[`bin/booksverify.mjs`](bin/booksverify.mjs) checks a statement without trusting the server that issued it, with no dependencies:
+
+```
+node bin/booksverify.mjs 57657 2026-10            # or: afg booksverify 57657 2026-10
+node bin/booksverify.mjs --file statement.json    # a saved answer
+node bin/booksverify.mjs --selftest 57657 2026-10 # also shows that altered copies are rejected
+```
+
+It checks the hash, the signature (key at `/.well-known/afg-pass-keys.json`), that the body equals the signed text, that the log leaf is built from this statement, the RFC 6962 inclusion proof under a signed head with that head's signature, and the Base anchor transaction read from a public node (`BASE_RPC`, default https://mainnet.base.org). The last two steps answer "not yet" until the next signed head (every three hours) and the next daily anchor (04:30 UTC).
 
 ## Works with your wallet
 
