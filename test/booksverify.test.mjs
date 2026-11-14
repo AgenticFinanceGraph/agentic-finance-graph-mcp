@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { verifyStatement } from "../bin/booksverify.mjs";
+import { verifyStatement, runCli } from "../bin/booksverify.mjs";
 
 /* An Agent Books answer built here with a throwaway key, so the test needs no network: the statement, its
    canonical text, hash and signature, a log leaf, and a two-leaf log signed by a second throwaway key. */
@@ -69,4 +69,23 @@ test("an unsigned answer is reported as unsigned, and an unknown key fails", asy
   const { answer, keys, logDoc } = make();
   assert.equal((await verifyStatement({ signed: false, note: "limit reached" }, { keys, logDoc }))[0].ok, false);
   assert.ok(failed(await verifyStatement(answer, { keys: { keys: [] }, logDoc })).includes(2));
+});
+
+test("--id wants 32 hex characters, and rejects an answer that is another statement", async () => {
+  const lines = [];
+  assert.equal(await runCli(["--id", "zz"], (l) => lines.push(l)), 2);
+  assert.match(lines.join("\n"), /usage: booksverify --id/);
+  const { answer } = make();                       // carries books_id 00…00
+  const realFetch = globalThis.fetch, asked = [];
+  globalThis.fetch = async (url) => { asked.push(String(url)); return { ok: true, status: 200, json: async () => answer }; };
+  try {
+    const out = [];
+    assert.equal(await runCli(["--id", "ab".repeat(16)], (l) => out.push(l)), 1);
+    assert.match(out.join("\n"), /not the statement asked for/);
+    assert.ok(asked[0].endsWith("/api/books?id=" + "ab".repeat(16)));
+    globalThis.fetch = async () => ({ ok: false, status: 404, json: async () => ({ ok: false }) });
+    const none = [];
+    assert.equal(await runCli(["--id", "cd".repeat(16)], (l) => none.push(l)), 1);
+    assert.match(none.join("\n"), /no stored statement with this id/);
+  } finally { globalThis.fetch = realFetch; }
 });

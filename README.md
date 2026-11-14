@@ -152,6 +152,7 @@ Or install it once: `npm install -g agentic-finance-graph`, then run `afg state`
 
 ```
 node bin/booksverify.mjs 57657 2026-10            # or: afg booksverify 57657 2026-10
+node bin/booksverify.mjs --id <books_id>          # a stored statement, by the id at the end of its link
 node bin/booksverify.mjs --file statement.json    # a saved answer
 node bin/booksverify.mjs --selftest 57657 2026-10 # also shows that altered copies are rejected
 ```

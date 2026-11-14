@@ -3,7 +3,9 @@
 ## Package 0.3.6 — 14 November 2026 (server unchanged at 1.10.0)
 
 - **On the npm registry.** `npx -y agentic-finance-graph state` runs the CLI, `npm install agentic-finance-graph` installs the package with the x402 Gate hook, and a stdio MCP client takes `"command": "npx", "args": ["-y", "agentic-finance-graph", "mcp"]`. Until today the package installed only from this repository; that form (`github:AgenticFinanceGraph/agentic-finance-graph-mcp`) works as before.
-- **No change in behaviour.** The same code as 0.3.5: the version string, the install lines of the README and of the hook's header, and `mcpName` in `package.json` (the name of the server in the official MCP Registry).
+- **New: `afg booksverify --id <books_id>`.** Every signed Agent Books answer now carries `permalink` (`/api/books?id=<books_id>`), which returns that same statement on any later day; a request by agent and period on a later day makes a new statement for that day. `--id` fetches a stored statement by the 32 characters at the end of its link, refuses an answer that is a different statement, and runs the same six checks. One offline test added (48).
+- **Fixed on Windows: a command that ended in an error crashed.** With Node 24 on Windows, `afg` printed `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` after its own error message and exited with code 127 (seen on `afg chaincheck` and `afg booksverify` with an unknown agent, and on `afg gate` with a malformed address). The commands now set the exit code and let Node finish: the message, then exit code 1.
+- **Otherwise the same code as 0.3.5:** the version string, the install lines of the README and of the hook's header, and `mcpName` in `package.json` (the name of the server in the official MCP Registry).
 
 ## Server 1.10.0 and package 0.3.5 — 13 November 2026
 

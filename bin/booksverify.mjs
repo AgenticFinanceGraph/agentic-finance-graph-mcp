@@ -3,6 +3,7 @@
    No dependencies; Node 18+.
 
      node booksverify.mjs <agent> [period]            fetch /api/books and check it   (also: afg booksverify <agent> [period])
+     node booksverify.mjs --id <books_id>              check a stored statement by the id at the end of its link
      node booksverify.mjs --file statement.json        check a saved answer
      node booksverify.mjs --selftest <agent> [period]  also prove the checks fail on altered copies
 
@@ -74,7 +75,14 @@ export async function runCli(argv, print = console.log) {
   const selftest = args[0] === "--selftest"; if (selftest) args.shift();
   let j;
   if (args[0] === "--file") j = JSON.parse(readFileSync(args[1], "utf8"));
-  else { if (!args[0]) { print("usage: booksverify <agent> [YYYY-MM | to-date]   |   --file statement.json   |   --selftest <agent> [period]"); return 2; } j = await getJson(SITE + "/api/books?agent=" + encodeURIComponent(args[0]) + "&period=" + encodeURIComponent(args[1] || "to-date")); }
+  else if (args[0] === "--id") {   /* a stored statement, by the id inside its signed body */
+    const id = String(args[1] || "").trim().toLowerCase();
+    if (!/^[0-9a-f]{32}$/.test(id)) { print("usage: booksverify --id <books_id>   (the 32 characters at the end of a statement's link)"); return 2; }
+    try { j = await getJson(SITE + "/api/books?id=" + id); }
+    catch (e) { if (String(e && e.message).endsWith(" answered 404")) { print("FAILED  no stored statement with this id (" + id + ")"); return 1; } throw e; }
+    if (!j || !j.body || j.body.books_id !== id) { print("FAILED  the answer is not the statement asked for (" + id + ")"); return 1; }
+  }
+  else { if (!args[0]) { print("usage: booksverify <agent> [YYYY-MM | to-date]   |   --id <books_id>   |   --file statement.json   |   --selftest <agent> [period]"); return 2; } j = await getJson(SITE + "/api/books?agent=" + encodeURIComponent(args[0]) + "&period=" + encodeURIComponent(args[1] || "to-date")); }
   const res = await verifyStatement(j);
   for (const r of res) print((r.ok === true ? "ok      " : r.ok === null ? "not yet " : "FAILED  ") + r.step + ". " + r.name + (r.note ? "  (" + r.note + ")" : ""));
   const failed = res.some((r) => r.ok === false);
@@ -103,4 +111,4 @@ export async function runCli(argv, print = console.log) {
   }
   return failed ? 1 : 0;
 }
-if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("booksverify.mjs")) runCli(process.argv.slice(2)).then((code) => process.exit(code)).catch((e) => { console.error("error: " + (e && e.message || e)); process.exit(2); });
+if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("booksverify.mjs")) runCli(process.argv.slice(2)).then((code) => { process.exitCode = code; }).catch((e) => { console.error("error: " + (e && e.message || e)); process.exitCode = 2; });
