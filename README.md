@@ -123,8 +123,16 @@ npm install agentic-finance-graph
 
 ```js
 import { makeGateHook } from "agentic-finance-graph/bin/x402-gate-hook.mjs";
-client.onBeforePaymentCreation(makeGateHook({ agent: "45978", policy_name: "recommended-v3", abortOn: ["block"], log: console.log }));
+client.onBeforePaymentCreation(makeGateHook({
+  agent: "45978",
+  policy_name: "recommended-v3",
+  abortOn: ["block"],
+  client_ref: process.env.AFG_CLIENT_REF,   // a random string you create once, for example: openssl rand -hex 16
+  log: console.log,
+}));
 ```
+
+**Limits that cannot be split (since 17 Nov 2026, package 0.3.7).** A counted payment reaches the ledger hours after its block, so a budget or a new-payee cap that reads the ledger alone can be passed by one large payment sent as many small ones. With `client_ref` the Gate also counts what it let through for you in the last 12 hours and has not yet seen on chain ([`gate.context.v2`](https://agenticfinancegraph.com/def/gate.context.v2)). Create the value once, keep it in the hook's configuration where the model you guard cannot change it, and send the same value with every check. Each object passed to `log` carries `pending`: what was counted. A check that was allowed and then not paid counts against your own limits for those 12 hours. Without `client_ref` the Gate counts the ledger only, and the answer says so.
 
 A payment on which nothing fired answers `allow` with no reasons. A fact that had nothing to measure (a service paid by 50 or more registered agents, too few transfers in the window) is listed in the facts and becomes a reason only if your policy sets `refuse_conditions.no_reading`; `unavailable` means a read failed (since 13 Nov 2026).
 

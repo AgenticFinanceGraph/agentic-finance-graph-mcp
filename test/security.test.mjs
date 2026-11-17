@@ -43,6 +43,31 @@ test("makeGateHook refuses bad options before any payment", () => {
   assert.throws(() => makeGateHook({ agent: "1", policy_name: "lenient" }), /unknown policy_name/);
   assert.throws(() => makeGateHook({ agent: "1", abortOn: ["refuse"] }), /unknown decision/);
   assert.throws(() => makeGateHook({ agent: "1", onUnavailable: "retry" }), /onUnavailable/);
+  assert.throws(() => makeGateHook({ agent: "1", client_ref: "short" }), /client_ref/);
+  assert.throws(() => makeGateHook({ agent: "1", client_ref: "has a space in it 1234567" }), /client_ref/);
+  assert.throws(() => makeGateHook({ agent: "1", client_ref: 1234567890123456 }), /client_ref/);
+});
+
+test("client_ref travels with every check and the log carries what the Gate counted as pending; without it nothing is sent", async () => {
+  const REF = "a1b2c3d4e5f60718293a4b5c6d7e8f90";
+  let n = 0;
+  const s = await stub((name, a) => { n++; const second = a.client_ref === REF && n === 2; return { decision: second ? "block" : "allow", reasons: second ? ["new_payee_window_above_max:40+40>50/24h"] : [], policy: { name: "custom" }, decision_id: "gd_test" + n, context: { pending: a.client_ref ? { counted: true, hours: 12, decisions: n - 1, usd: 40 * (n - 1) } : { counted: false, why: "no operator_id or client_ref" } } }; });
+  try {
+    const log = [];
+    const hook = makeGateHook({ agent: "57657", policy: { new_payee: { max: 50, window_hours: 24 } }, client_ref: REF, url: s.url, log: (x) => log.push(x) });
+    assert.equal(await hook(req({ amount: "40000000" })), undefined);
+    const r2 = await hook(req({ amount: "40000000" }));
+    assert.equal(r2.abort, true);
+    assert.match(r2.reason, /new_payee_window_above_max/);
+    assert.equal(s.calls[0].params.arguments.client_ref, REF);
+    assert.equal(s.calls[1].params.arguments.client_ref, REF);
+    assert.deepEqual(log[0].pending, { counted: true, hours: 12, decisions: 0, usd: 0 });
+    assert.deepEqual(log[1].pending, { counted: true, hours: 12, decisions: 1, usd: 40 });
+    const plain = makeGateHook({ agent: "57657", url: s.url, log: (x) => log.push(x) });
+    assert.equal(await plain(req({ amount: "40000000" })), undefined);
+    assert.equal("client_ref" in s.calls[2].params.arguments, false);
+    assert.equal(log[2].pending.counted, false);
+  } finally { s.close(); }
 });
 
 test("a block from the Gate aborts; warn and log allow; the call carries the agent, payee, USD and policy", async () => {
