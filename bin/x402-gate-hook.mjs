@@ -6,7 +6,7 @@
    payTo, …) and aborts by returning { abort: true, reason }.
 
    The Gate (https://agenticfinancegraph.com/ai-agent-security-layer-gate-watch-pass-shadow) answers
-   block / warn / log / allow with every reason, from seven measured facts about the payee, the paying agent's own
+   block / warn / log / allow with every reason, from nine measured facts about the payee, the paying agent's own
    ledger history and a policy in the AP2 constraint vocabulary. AFG never blocks anything itself and records every
    decision; this hook is where the operator's choice lives:
 
@@ -17,17 +17,27 @@
    Options: agent (your agent's token id, slug or bound wallet; required), policy_name (log-only | balanced | recommended |
    recommended-v3 | strict) or policy (your own object in the AP2 vocabulary), abortOn (decisions that abort; default
    ["block"]), onUnavailable ("warn" allows and logs when AFG cannot be reached, the default; "abort" fails closed;
-   "allow" fails open silently), minUsd (skip the call below this value), log (a function receiving one object per
-   decision), url (the MCP endpoint), fetchImpl and timeoutMs (tests).
+   "allow" fails open silently), minUsd (skip the call below this value), client_ref (see below), log (a function
+   receiving one object per decision), url (the MCP endpoint), fetchImpl and timeoutMs (tests).
 
    Since 13 Nov 2026 each decision object passed to log carries receipt: the Gate's signed receipt (gate.receipt.v1: agent,
    payee, amount, policy and its hash, decision, reasons, time; Ed25519), to keep beside the payment as proof that it was
-   checked first. It is null when the Gate gave no receipt. */
+   checked first. It is null when the Gate gave no receipt.
+
+   Since 17 Nov 2026 (gate.context.v2) the Gate's limits also count what it let through for the same caller in the last
+   12 hours and has not yet seen on chain, so a payment split into small parts meets the same budget and new-payee caps
+   as one large payment. The caller is client_ref: a random string of 16 to 64 characters (letters, digits, _ . -) that
+   you create once (for example `openssl rand -hex 16`), keep in this hook's configuration, outside the reach of the
+   model you guard, and never change. Without it the Gate counts the ledger only, and a counted payment reaches the
+   ledger hours after its block. A check that was allowed and then not paid counts against your own limits for those 12
+   hours. Each decision object passed to log carries pending: what the Gate counted (decisions, usd), or
+   { counted: false } when no client_ref was sent. */
 
 export const MCP_URL = "https://agenticfinancegraph.com/mcp";
 export const DECISIONS = ["block", "warn", "log", "allow"];
 export const POLICIES = ["log-only", "balanced", "recommended", "recommended-v3", "strict"];
 export const KNOWN_SCHEMES = ["exact", "batch-settlement"];
+export const CLIENT_REF = /^[A-Za-z0-9_.-]{16,64}$/;
 
 /** USD value of an atomic amount for USDC, USDT and DAI on Base; null for EURC (no rate here) and anything else. */
 export function usdOf(asset, amount, network) {
@@ -70,6 +80,7 @@ export function makeGateHook(opts = {}) {
   for (const d of abortOn) if (!DECISIONS.includes(d)) throw new Error(`unknown decision in abortOn: ${d}`);
   const onUnavailable = opts.onUnavailable || "warn";
   if (!["warn", "abort", "allow"].includes(onUnavailable)) throw new Error("onUnavailable must be warn, abort or allow");
+  if (opts.client_ref != null && (typeof opts.client_ref !== "string" || !CLIENT_REF.test(opts.client_ref))) throw new Error("client_ref must be 16 to 64 characters: letters, digits, underscore, dot or hyphen");
   const minUsd = opts.minUsd ?? 0;
   const log = opts.log || (() => {});
   return async function onBeforePaymentCreation(context) {
@@ -85,7 +96,7 @@ export function makeGateHook(opts = {}) {
     if (usd != null && usd < minUsd) { log({ ...base, decision: "allow", reason: `under ${minUsd} USD, not checked` }); return; }
     if (usd == null) { log({ ...base, decision: "allow", reason: "unpriced asset or other network: the Gate prices USD stablecoins on Base; not checked" }); return; }
     let check;
-    try { check = await callTool("gate_check", { agent: opts.agent, payee: payTo, amount_usd: usd, ...(opts.policy ? { policy: opts.policy } : { policy_name: opts.policy_name || "log-only" }) }, { url: opts.url, fetchImpl: opts.fetchImpl, timeoutMs: opts.timeoutMs }); }
+    try { check = await callTool("gate_check", { agent: opts.agent, payee: payTo, amount_usd: usd, ...(opts.policy ? { policy: opts.policy } : { policy_name: opts.policy_name || "log-only" }), ...(opts.client_ref ? { client_ref: opts.client_ref } : {}) }, { url: opts.url, fetchImpl: opts.fetchImpl, timeoutMs: opts.timeoutMs }); }
     catch (e) {
       const reason = `gate_check unavailable: ${e.message}`;
       if (onUnavailable === "abort") { log({ ...base, decision: "abort", reason }); return { abort: true, reason }; }
@@ -93,8 +104,9 @@ export function makeGateHook(opts = {}) {
       return;
     }
     const decision = check.decision || "allow";
+    const pending = check.context?.pending ?? null;
     const facts = { kind: check.facts?.kind ?? null, paid_by_registered_agents: check.facts?.pop ?? null, frozen: !!check.facts?.frozen, v2: check.score_v2 ? { level: check.score_v2.level, reasons: check.score_v2.reasons } : null, as_of: check.as_of || null, decision_id: check.decision_id || null };
-    if (abortOn.includes(decision)) { const reason = `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}; decision ${check.decision_id}; as of ${check.as_of})`; log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts, receipt: check.receipt || null }); return { abort: true, reason }; }
-    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts, receipt: check.receipt || null });
+    if (abortOn.includes(decision)) { const reason = `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}; decision ${check.decision_id}; as of ${check.as_of})`; log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts, pending, receipt: check.receipt || null }); return { abort: true, reason }; }
+    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts, pending, receipt: check.receipt || null });
   };
 }
