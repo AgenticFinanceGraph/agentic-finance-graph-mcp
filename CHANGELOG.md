@@ -1,10 +1,10 @@
 # Changelog
 
-## Package 0.3.7 — 17 November 2026 (server unchanged at 1.10.0)
+## Server 1.10.1 and package 0.3.7 — 17 November 2026
 
 - **The x402 Gate hook sends `client_ref`.** New option of `makeGateHook`: a random string of 16 to 64 characters (letters, digits, `_`, `.`, `-`) that you create once and keep in the hook's configuration. The Gate then counts, beside the agent's counted payments, what it already let through for the same caller in the last 12 hours and has not yet seen on chain, so a payment split into small parts meets the same budget and new-payee caps as one large payment ([`gate.context.v2`](https://agenticfinancegraph.com/def/gate.context.v2), live on the server since 17 Nov 2026, 21:34 UTC). A malformed value throws when the hook is made, before any payment.
 - **Each decision object passed to `log` carries `pending`**: what the Gate counted (`decisions`, `usd`), or `{ counted: false }` when no `client_ref` was sent.
-- The remote server's `gate_check` tool and `POST /api/gate/check` take `client_ref` since the same day; nothing to install for MCP clients.
+- **Server 1.10.1:** the remote server's `gate_check` tool and `POST /api/gate/check` take `client_ref` since the same day (29 tools as before). Nothing to install for MCP clients.
 - Without `client_ref` the hook behaves as in 0.3.6.
 - Four new assertions and one new test (`npm test`).
 
