@@ -1,5 +1,12 @@
 # Changelog
 
+## Server 1.11.0 and package 0.3.8 (not released yet)
+
+- **The x402 Gate hook names a pinned policy.** When the owner of an agent's registration has pinned a policy to it (`gate.policy.pin.v1`), the Gate answers with the worse of the decision under the policy the hook asks with and the decision under the pinned policy. When the pin decides, the abort reason says so and gives the pin's reasons (the asked policy's reasons can be empty, for example under `log-only`). Each decision object passed to `log` carries `pin`, `decided_by`, `decision_asked`, `decision_pinned` and `pin_reasons` (`null` without a pin).
+- **Server 1.11.0:** `gate_check` answers under a pinned policy, with a receipt of version 3 (`gate.receipt.v3`); new route `GET /api/gate/pin?agent=<number>`. Nothing to install for MCP clients.
+- Without a pin the hook behaves as in 0.3.7: the same abort reason, character for character.
+- One new test (`npm test`: 50 tests).
+
 ## Server 1.10.1 and package 0.3.7 — 17 November 2026
 
 - **The x402 Gate hook sends `client_ref`.** New option of `makeGateHook`: a random string of 16 to 64 characters (letters, digits, `_`, `.`, `-`) that you create once and keep in the hook's configuration. The Gate then counts, beside the agent's counted payments, what it already let through for the same caller in the last 12 hours and has not yet seen on chain, so a payment split into small parts meets the same budget and new-payee caps as one large payment ([`gate.context.v2`](https://agenticfinancegraph.com/def/gate.context.v2), live on the server since 17 Nov 2026, 21:34 UTC). A malformed value throws when the hook is made, before any payment.

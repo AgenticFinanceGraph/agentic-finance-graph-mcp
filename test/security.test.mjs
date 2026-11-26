@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { makeGateHook, usdOf, signedAmount, callTool } from "../bin/x402-gate-hook.mjs";
+import { makeGateHook, usdOf, signedAmount, callTool, abortReason, pinOf } from "../bin/x402-gate-hook.mjs";
 
 const CLI = fileURLToPath(new URL("../bin/afg.mjs", import.meta.url));
 const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
@@ -88,6 +88,35 @@ test("a block from the Gate aborts; warn and log allow; the call carries the age
     assert.equal(log[1].decision, "allow");
     assert.equal(log[1].gate, "log");
   } finally { s.close(); }
+});
+
+test("under a pinned policy the abort names the pin and its reasons and the log carries both decisions; without a pin the reason is as before", async () => {
+  const PIN = { definition: "gate.policy.pin.v1", sha256: "ab".repeat(32), policy_name: "recommended", since: "2026-11-26T09:00:05Z", event_id: "gp_x", set_by_earlier_owner: false, pinned_by_paying_wallet: false };
+  const s = await stub((name, a) => (a.amount_usd > 250
+    ? { decision: "block", decided_by: "pin", decision_asked: "allow", decision_pinned: "block", reasons: [], pin_reasons: ["new_payee_window_above_max:933.1>250/168h"], pin: PIN, policy: { name: "log-only" }, decision_id: "gd_pin", as_of: "2026-11-26T09:01:00Z", facts: {}, receipt: { body: { schema: "afg-gate-receipt/3" } } }
+    : { decision: "log", decided_by: "both", decision_asked: "log", decision_pinned: "log", reasons: ["log:x"], pin_reasons: [], pin: PIN, policy: { name: "log-only" }, decision_id: "gd_pin2", as_of: "2026-11-26T09:01:01Z", facts: {} }));
+  try {
+    const log = [];
+    const hook = makeGateHook({ agent: "45978", url: s.url, log: (x) => log.push(x) });
+    const r = await hook(req());
+    assert.equal(r.abort, true);
+    assert.match(r.reason, /decided by the policy pinned to this agent/);
+    assert.match(r.reason, /pin abababababab…/);
+    assert.match(r.reason, /new_payee_window_above_max/);
+    assert.match(r.reason, /asked under log-only: allow/);
+    assert.doesNotMatch(r.reason, /no reason/);
+    assert.equal(log[0].decided_by, "pin"); assert.equal(log[0].decision_asked, "allow"); assert.equal(log[0].decision_pinned, "block");
+    assert.deepEqual(log[0].pin_reasons, ["new_payee_window_above_max:933.1>250/168h"]); assert.equal(log[0].pin.sha256, "ab".repeat(32));
+    assert.equal(log[0].receipt.body.schema, "afg-gate-receipt/3");
+    assert.equal(await hook(req({ amount: "5000000" })), undefined);
+    assert.equal(log[1].decided_by, "both"); assert.equal(log[1].gate, "log");
+  } finally { s.close(); }
+  /* no pin: the reason of 0.3.7, character for character, and every pin field null */
+  const check = { decision: "block", reasons: ["new_payee_above_max:933.1>250"], policy: { name: "recommended-v3" }, decision_id: "gd_test", as_of: "2026-10-16T12:00:00Z" };
+  assert.equal(abortReason(check, "block"), "AFG gate_check: block (new_payee_above_max:933.1>250; policy recommended-v3; decision gd_test; as of 2026-10-16T12:00:00Z)");
+  assert.deepEqual(pinOf(check), { pin: null, decided_by: null, decision_asked: null, decision_pinned: null, pin_reasons: null });
+  /* a pin in force that did not decide (the asked policy was as strict or stricter): the reason says a pin is in force */
+  assert.match(abortReason({ ...check, pin: { sha256: "cd".repeat(32) }, decided_by: "asked", decision_pinned: "warn" }, "block"), /a policy is pinned to this agent \(pin cdcdcdcdcdcd…\): warn/);
 });
 
 test("abortOn can include warn; a custom policy object travels as `policy`", async () => {
