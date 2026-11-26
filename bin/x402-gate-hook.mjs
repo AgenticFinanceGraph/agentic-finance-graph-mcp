@@ -20,9 +20,17 @@
    "allow" fails open silently), minUsd (skip the call below this value), client_ref (see below), log (a function
    receiving one object per decision), url (the MCP endpoint), fetchImpl and timeoutMs (tests).
 
-   Since 13 Nov 2026 each decision object passed to log carries receipt: the Gate's signed receipt (gate.receipt.v1: agent,
-   payee, amount, policy and its hash, decision, reasons, time; Ed25519), to keep beside the payment as proof that it was
-   checked first. It is null when the Gate gave no receipt.
+   Since 13 Nov 2026 each decision object passed to log carries receipt: the Gate's signed receipt (agent, payee, amount,
+   the policy by name and by the SHA-256 of all its limits, decision, reasons, time; Ed25519; gate.receipt.v2 since
+   24 Nov 2026, gate.receipt.v3 for an answer given under a pinned policy), to keep beside the payment as proof that it
+   was checked first. It is null when the Gate gave no receipt.
+
+   A pinned policy (gate.policy.pin.v1): the owner of an agent's registration can pin one policy to the agent. While it
+   is pinned, the Gate evaluates each check under the policy this hook asks with and under the pinned one, and answers
+   with the worse decision, so a weaker policy here cannot weaken the answer. The answer then carries pin (the pinned
+   policy's SHA-256, since when), decision_asked, decision_pinned, decided_by and pin_reasons. When the pin decides, the
+   abort reason says so and gives the pin's reasons; each decision object passed to log carries the same fields (null
+   when no pin is in force). Read an agent's pin at https://agenticfinancegraph.com/api/gate/pin?agent=<number>.
 
    Since 17 Nov 2026 (gate.context.v2) the Gate's limits also count what it let through for the same caller in the last
    12 hours and has not yet seen on chain, so a payment split into small parts meets the same budget and new-payee caps
@@ -72,6 +80,25 @@ export async function callTool(name, args, { url = MCP_URL, fetchImpl = globalTh
   } finally { clearTimeout(timer); }
 }
 
+/** The pinned policy's part of an answer (gate.policy.pin.v1), for the log: every field null when no pin is in force. */
+export function pinOf(check) {
+  const p = check && check.pin;
+  if (!p) return { pin: null, decided_by: null, decision_asked: null, decision_pinned: null, pin_reasons: null };
+  return { pin: { sha256: p.sha256 ?? null, policy_name: p.policy_name ?? null, since: p.since ?? null, set_by_earlier_owner: p.set_by_earlier_owner ?? null, pinned_by_paying_wallet: p.pinned_by_paying_wallet ?? null },
+    decided_by: check.decided_by ?? null, decision_asked: check.decision_asked ?? null, decision_pinned: check.decision_pinned ?? null, pin_reasons: Array.isArray(check.pin_reasons) ? check.pin_reasons : null };
+}
+/** The reason an abort gives. When the pinned policy decided, it names the pin and gives the pin's reasons, so a block
+    under an asked policy that never blocks (log-only) does not read "no reason". */
+export function abortReason(check, decision) {
+  const tail = `decision ${check.decision_id}; as of ${check.as_of}`;
+  if (check.pin && check.decided_by === "pin") {
+    const sha = String(check.pin.sha256 || "").slice(0, 12);
+    return `AFG gate_check: ${decision}, decided by the policy pinned to this agent (pin ${sha}…, since ${check.pin.since}; ${(check.pin_reasons || []).join(", ") || "no reason"}; asked under ${check.policy?.name}: ${check.decision_asked}; ${tail})`;
+  }
+  const pinNote = check.pin ? `; a policy is pinned to this agent (pin ${String(check.pin.sha256 || "").slice(0, 12)}…): ${check.decision_pinned}` : "";
+  return `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}${pinNote}; ${tail})`;
+}
+
 export function makeGateHook(opts = {}) {
   if (!opts.agent) throw new Error("makeGateHook: `agent` is required (your agent's token id, slug or bound wallet)");
   if (opts.policy_name && !POLICIES.includes(opts.policy_name)) throw new Error(`unknown policy_name ${opts.policy_name}; known: ${POLICIES.join(", ")}`);
@@ -106,7 +133,8 @@ export function makeGateHook(opts = {}) {
     const decision = check.decision || "allow";
     const pending = check.context?.pending ?? null;
     const facts = { kind: check.facts?.kind ?? null, paid_by_registered_agents: check.facts?.pop ?? null, frozen: !!check.facts?.frozen, v2: check.score_v2 ? { level: check.score_v2.level, reasons: check.score_v2.reasons } : null, as_of: check.as_of || null, decision_id: check.decision_id || null };
-    if (abortOn.includes(decision)) { const reason = `AFG gate_check: ${decision} (${(check.reasons || []).join(", ") || "no reason"}; policy ${check.policy?.name}; decision ${check.decision_id}; as of ${check.as_of})`; log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts, pending, receipt: check.receipt || null }); return { abort: true, reason }; }
-    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts, pending, receipt: check.receipt || null });
+    const pinned = pinOf(check);
+    if (abortOn.includes(decision)) { const reason = abortReason(check, decision); log({ ...base, decision: "abort", gate: decision, reasons: check.reasons, facts, pending, receipt: check.receipt || null, ...pinned }); return { abort: true, reason }; }
+    log({ ...base, decision: "allow", gate: decision, reasons: check.reasons, facts, pending, receipt: check.receipt || null, ...pinned });
   };
 }
