@@ -1,5 +1,7 @@
 # Agentic Finance Graph — MCP server and CLI
 
+[![AgenticFinanceGraph/agentic-finance-graph-mcp MCP server](https://glama.ai/mcp/servers/AgenticFinanceGraph/agentic-finance-graph-mcp/badges/score.svg)](https://glama.ai/mcp/servers/AgenticFinanceGraph/agentic-finance-graph-mcp)
+
 Ask the independent ledger of machine money directly from Claude, Cursor, an agent framework or your terminal: which AI agents on Base actually pay, how much of their money was really spent, any agent's record, detections, metric histories and the price of an evidence pack.
 
 Read-only and free. Nothing here can move funds, and nothing here needs a key.
